@@ -151,6 +151,8 @@ class UnknownInstruction(Exception):
         """
         return f'Instruction {self.instruction} unknown (line {self.line})'
 
+class Vertices:
+    
 
 class Model:
     """
@@ -163,7 +165,21 @@ class Model:
         """
         self.vertices = []
         self.faces = []
+        self.fov = [] # liste d'array contenant les indices de faces pour chaque vertices
+        self.state_flags = [] # le sate_flags de chaque vertices
+        self.retirangulation_tags = [] # les tags de chaque vertices pour la retriangulation
         self.line = 0
+
+    def complete_model(self):
+        self.fov = [np.array([],dtype=int) for _ in range(len(self.vertices))]
+        for i in range (len(self.faces)) :
+            f = self.faces[i]
+            self.fov[f.a] = np.append(self.fov[f.a],i)
+            self.fov[f.b] = np.append(self.fov[f.b],i)
+            self.fov[f.c] = np.append(self.fov[f.c],i)
+        self.state_flags = np.zeros(len(self.vertices),dtype=int)
+        self.retirangulation_tags = np.zeros(len(self.vertices),dtype=int)
+
 
     def get_vertex_from_string(self, string):
         """
@@ -185,6 +201,8 @@ class Model:
         index = int(string) - 1
         if index >= len(self.faces):
             raise FaceError(index + 1, self.line)
+        print(index)
+        print(self.faces[index])
         return self.faces[index]
 
     def parse_file(self, path):
@@ -339,9 +357,16 @@ def main():
         return
 
     model = parse_file(sys.argv[1])
+    model.complete_model()
+
     print(model.vertices)
     print(model.faces)
+    print(model.fov)
+    print(model.state_flags)
+    print(model.retirangulation_tags)
+
 
 
 if __name__ == "__main__":
     main()
+    
