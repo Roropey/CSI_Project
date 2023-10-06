@@ -3,11 +3,16 @@
 import sys
 import numpy as np
 import random
+from enum import Enum
+
+class State_vertex(Enum):
+    Free = 1
+    Conquered = 2
+    To_be_removed = 3
 
 """
 obja model for python.
 """
-
 
 class Face:
     """
@@ -151,9 +156,14 @@ class UnknownInstruction(Exception):
         """
         return f'Instruction {self.instruction} unknown (line {self.line})'
 
-class Vertices:
-    
-
+class Vertex:
+    def __init__(self,index,coordinates):
+        self.index = index
+        self.coordinates = coordinates
+        self.faces = []
+        self.state = State_vertex.Free         # see class State
+        self.retriangulation_type = 0          # +1 => + and -1 => - and 0 => nothing...
+        self.visible = True
 class Model:
     """
     The OBJA model.
@@ -170,7 +180,7 @@ class Model:
         self.retirangulation_tags = [] # les tags de chaque vertices pour la retriangulation
         self.line = 0
 
-    def complete_model(self):
+    """def complete_model(self):
         self.fov = [np.array([],dtype=int) for _ in range(len(self.vertices))]
         for i in range (len(self.faces)) :
             f = self.faces[i]
@@ -179,7 +189,14 @@ class Model:
             self.fov[f.c] = np.append(self.fov[f.c],i)
         self.state_flags = np.zeros(len(self.vertices),dtype=int)
         self.retirangulation_tags = np.zeros(len(self.vertices),dtype=int)
-
+    """
+    def memorize_face(self,face):
+        self.faces.append(face)
+        index_face = len(self.faces) + 1
+        self.vertices[face.a].faces.append(index_face)
+        self.vertices[face.b].faces.append(index_face)
+        self.vertices[face.c].faces.append(index_face)
+        
 
     def get_vertex_from_string(self, string):
         """
@@ -190,7 +207,7 @@ class Model:
         index = int(string) - 1
         if index >= len(self.vertices):
             raise FaceError(index + 1, self.line)
-        return self.vertices[index]
+        return self.vertices[index].coordinates
 
     def get_face_from_string(self, string):
         """
@@ -225,8 +242,9 @@ class Model:
             return
 
         if split[0] == "v":
-            self.vertices.append(np.array(split[1:], np.double))
 
+            self.vertices.append(Vertex(len(self.vertices)+2,np.array(split[1:], np.double)))
+            # Maybe modify the +2...
         elif split[0] == "ev":
             self.get_vertex_from_string(split[1]).set(split[2:])
 
@@ -237,7 +255,7 @@ class Model:
             for i in range(1, len(split) - 2):
                 face = Face.from_array(split[i:i + 3])
                 face.test(self.vertices, self.line)
-                self.faces.append(face)
+                self.memorize_face(face)
 
         elif split[0] == "ts":
             for i in range(1, len(split) - 2):
@@ -246,7 +264,7 @@ class Model:
                 else:
                     face = Face.from_array([split[i], split[i + 2], split[i + 1]])
                 face.test(self.vertices, self.line)
-                self.faces.append(face)
+                self.memorize_face(face)
 
         elif split[0] == "ef":
             self.get_face_from_string(split[1]).set(split[2:])
@@ -256,11 +274,17 @@ class Model:
             vertex = int(split[2])
             new_index = int(split[3]) - 1
             if vertex == 1:
+                self.vertices[face.a].faces.remove(split[1])
                 face.a = new_index
+                self.vertices[face.a].faces.append(split[1])
             elif vertex == 2:
+                self.vertices[face.b].faces.remove(split[1])
                 face.b = new_index
+                self.vertices[face.b].faces.append(split[1])
             elif vertex == 3:
+                self.vertices[face.c].faces.remove(split[1])
                 face.c = new_index
+                self.vertices[face.c].faces.append(split[1])
             else:
                 raise FaceVertexError(vertex, self.line)
 

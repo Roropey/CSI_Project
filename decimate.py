@@ -19,10 +19,12 @@ class Decimater(obja.Model):
         operations = []
 
         for (vertex_index, vertex) in enumerate(self.vertices):
-            operations.append(('ev', vertex_index, vertex + 0.25))
+            vertex_coord = vertex.coordinates
+            operations.append(('ev', vertex_index, vertex_coord + 0.25))
 
         # Iterate through the vertex
         for (vertex_index, vertex) in enumerate(self.vertices):
+            vertex_coord = vertex.coordinates
 
             # Iterate through the faces
             for (face_index, face) in enumerate(self.faces):
@@ -35,7 +37,7 @@ class Decimater(obja.Model):
                         operations.append(('face', face_index, face))
 
             # Delete the vertex
-            operations.append(('vertex', vertex_index, vertex))
+            operations.append(('vertex', vertex_index, vertex_coord))
 
         # To rebuild the model, run operations in reverse order
         operations.reverse()
