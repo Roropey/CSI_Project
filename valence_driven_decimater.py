@@ -171,8 +171,7 @@ class Decimater(obja.Model):
                 print("Valence of 6")
             case _:
                 raise Exception("Unexpected valence (<3 or >6)")  
-        # TO DO : create the if statements depending the + and - for attributing + and - and creating face (create a Face object and use memorize_face of Model for adding it in the model)
-        #            
+        # TO DO : create the if statements depending the + and - for attributing + and - and creating face (create a Face object and use memorize_face of Model for adding it in the model)        
 
 
 
