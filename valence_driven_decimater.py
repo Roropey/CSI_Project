@@ -69,15 +69,15 @@ class Decimater(obja.Model):
 
 
 
-    def from_gate_to_face(self, gate_vertex1, gate_vertex2):
+    def gate_to_face(self, gate_vertex1, gate_vertex2):
         # Visit all faces from the 1st vertex to see if any face is shared in the right order with the 2nd vertex
         # Return the face index and the three vertices of the face that have the gate
         for index_face in gate_vertex1.faces:
-            if self.faces[index_face].a == gate_vertex1.index and self.face[index_face].b == gate_vertex2.index :
+            if self.faces[index_face].a == gate_vertex1.index and self.faces[index_face].b == gate_vertex2.index :
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c]]
-            elif self.face[index_face].b == gate_vertex1.index and self.face[index_face].c == gate_vertex2.index:
+            elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a]]
-            elif self.face[index_face].c == gate_vertex1.index and self.face[index_face].a == gate_vertex2.index:
+            elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b]]
                 
         raise Exception("The two vertex given doesn't correspond to a gate.")
@@ -91,7 +91,7 @@ class Decimater(obja.Model):
         c_gate = self.gate.popleft()
 
         # search for the front vertex
-        front_vertex = self.from_gate_to_face(c_gate[0], c_gate[1])[3]
+        front_vertex = self.gate_to_face(c_gate[0], c_gate[1])[3]
         
         
         #if the front vertex is free and has a valence <= 6
@@ -125,10 +125,55 @@ class Decimater(obja.Model):
             
         
            
-"""
-    def retriangulation(current_gate)
 
-"""
+    def retriangulation(self,vertex_to_be_removed):
+        border_patch = vertex_to_be_removed.gate.copy() # List of all vertices around the vertex to be removed
+        vertex_infos = self.vertices[vertex_to_be_removed.index]    # A variable to access directly info to avoid too much code
+        while vertex_infos.faces:   # While there is faces to be removed from the "vertex to be removed", we search them
+            Advance = False
+            for index_face in vertex_infos.faces:   # Visit all faces of the vertex to be removed to see if any face correspond to the next in the chain around
+                # Normally with the order of face to be removed should be in the counterclock order, starting with the face next to the gate face
+                # The gate face should be the last one to be removed
+                # If any face having the center following by the last adding into the chain as a "gate", then this is the next face, and so the third vertex the next vertex in the chain
+                # Knowing the chain order is required because removing faces will loose the patch organization information and so we need to memorize it for the retriangulation
+                # When found, added the vertex and remove the face, we break the for loop to research again if required
+                if self.faces[index_face].a == vertex_to_be_removed.index and self.faces[index_face].b == border_patch[-1]:
+                    border_patch.append(self.faces[index_face].c)
+                    self.remove_face(index_face)
+                    break 
+                elif self.faces[index_face].b == vertex_to_be_removed.index and self.faces[index_face].c == border_patch[-1]:
+                    border_patch.append(self.faces[index_face].a)
+                    self.remove_face(index_face)
+                    break
+                elif self.faces[index_face].c == vertex_to_be_removed.index and self.faces[index_face].a == border_patch[-1]:
+                    border_patch.append(self.faces[index_face].b)
+                    self.remove_face(index_face)
+                    break
+
+            raise Exception("Not found next vertex in the chain around")
+        if len(border_patch) != vertex_to_be_removed.valence + 2:   
+            # Through this process, since the gate face will be the last processed, the two vertices of the gates will be added in the chain and so being two time in it
+            # (Once added when the left face of the gate face will be removed for the left gate vertex, and once the gate face is removed for the right gate vertex)
+            #Therefore, the border_patch is required to have two more
+            raise Exception("Unexpected valence or border_patch size (!=)")
+        else:
+            border_patch.remove(-1) #remove the right gate vertex last adding
+            border_patch.remove(-1) #remove the left gate vertex last adding
+        
+        match vertex_to_be_removed.valence:
+            case 3:
+                print("Valence of 3")
+            case 4:
+                print("Valence of 4")
+            case 5:
+                print("Valence of 5")
+            case 6:
+                print("Valence of 6")
+            case _:
+                raise Exception("Unexpected valence (<3 or >6)")  
+        # TO DO : create the if statements depending the + and - for attributing + and - and creating face (create a Face object and use memorize_face of Model for adding it in the model)
+        #            
+
 
 
 

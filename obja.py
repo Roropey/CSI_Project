@@ -175,9 +175,9 @@ class Model:
         """
         self.vertices = []
         self.faces = []
-        self.fov = [] # liste d'array contenant les indices de faces pour chaque vertices
-        self.state_flags = [] # le sate_flags de chaque vertices
-        self.retirangulation_tags = [] # les tags de chaque vertices pour la retriangulation
+        # self.fov = [] # liste d'array contenant les indices de faces pour chaque vertices
+        # self.state_flags = [] # le sate_flags de chaque vertices
+        # self.retirangulation_tags = [] # les tags de chaque vertices pour la retriangulation
         self.line = 0
 
     """def complete_model(self):
@@ -221,6 +221,15 @@ class Model:
         print(index)
         print(self.faces[index])
         return self.faces[index]
+    
+    def remove_face(self,index):
+        if index >= len(self.faces):
+            raise FaceError(index + 1, self.line)
+        face = self.faces[index]
+        self.vertices[face.a].faces.remove(index)
+        self.vertices[face.b].faces.remove(index)
+        self.vertices[face.c].faces.remove(index)
+        self.faces[index].visible = False       #Removing the face completly will modify the indexation of the faces and maybe will create a shift between faces and rest
 
     def parse_file(self, path):
         """
