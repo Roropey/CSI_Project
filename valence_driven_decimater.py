@@ -20,7 +20,7 @@ class Vertex_removed():
         
 class Decimater(obja.Model):
     """
-    A simple class that decimates a 3D model stupidly.
+
     """
     def __init__(self):
         super().__init__()
@@ -28,44 +28,34 @@ class Decimater(obja.Model):
         self.gate = deque()
         self.list_removed = []
     
-    def find_the_gate(self, vertice_center,c_gate, init_gate = []):
-        if init_gate != c_gate:
-            if init_gate == []:
-                init_gate = c_gate 
+    def find_the_gate(self, vertice_center,current_gate, init_gate = None):
+        """
+        Recursive function to find gates when the front vertex is to be removed.
 
-            for f in vertice_center.faces:
-                face = [self.vertices[f.a],self.vertices[f.b],self.vertices[f.c]]
-                if c_gate[0] in face and c_gate[1] in face and not vertice_center.index in face:
-                    a = face.index(c_gate[1])
-                    nv_gate = [self.vertices[f[a]],self.vertices[f[a+1]]] 
-                    if nv_gate[0].state != 2 and nv_gate[1].state != 2 : 
-                        nv_gate[0].state = 2 
-                        nv_gate[1].state = 2
-                        self.gate.append(nv_gate)
+        Parameters:
+        - vertice_center: The front vertex of the current gate.
+        - current_gate: The current gate being explored.
+        - init_gate: The initial gate used as a reference to stop the recursion.
 
-                    self.find_the_gate(vertice_center,nv_gate, init_gate)
-    
-
-    def find_the_gate_4_null_path(self, vertice_center,c_gate):
-
-        #Recherche of the gates for the case of null_path
-    
+        """
         
-        # first I search the face corresponding to the gate and the vertice_center
-        for f in vertice_center.faces:
-            face = [self.vertices[f.a],self.vertices[f.b],self.vertices[f.c]]
-            if c_gate[0] in face and c_gate[1] in face and vertice_center.index in face:
-                nv_gate = [c_gate[1],vertice_center] 
-                if nv_gate[0].state != 2 and nv_gate[1].state != 2 : 
-                    nv_gate[0].state = 2 
-                    nv_gate[1].state = 2
-                    self.gate.append(nv_gate)
-                    
-                nv_gate = [c_gate[0],vertice_center] 
-                if nv_gate[0].state != 2 and nv_gate[1].state != 2 : 
-                    nv_gate[0].state = 2 
-                    nv_gate[1].state = 2
-                    self.gate.append(nv_gate)
+        # Set the initial gate
+        if init_gate is None:
+            init_gate = current_gate.copy() 
+
+        # find the next_gate
+        gate_face = self.gate_to_face(vertice_center, current_gate[1])
+        new_gate = gate_face[2:]
+
+        # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
+        if new_gate[0].state != 2 and new_gate[1].state != 2 and init_gate != new_gate : 
+            new_gate[0].state = 2 
+            new_gate[1].state = 2
+            self.gate.append(new_gate)
+
+        # Check if the new gate is different from the initial gate to avoid infinite recursion
+        if init_gate != new_gate:
+            self.find_the_gate(vertice_center,new_gate, init_gate)
 
 
 
@@ -90,24 +80,52 @@ class Decimater(obja.Model):
 
         c_gate = self.gate.popleft()
 
-        # search for the front vertex
-        front_vertex = self.gate_to_face(c_gate[0], c_gate[1])[3]
-        
-        
-        #if the front vertex is free and has a valence <= 6
-        if front_vertex.state == 1 and len(front_vertex.faces)<=6:
-            self.find_the_gate(front_vertex,c_gate)
+        # search for the front face information
+        front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
+        front_vertex = front_face_information[3]
+        front_face = self.faces[front_face_information[0]]
+
+
+        # if its front face is tagged conquered or to be removed
+        if front_face == 2 or front_face == 3:
+            return None
+
+        #elif the front vertex is free and has a valence <= 6
+        elif front_vertex.state == 1 and len(front_vertex.faces)<=6:
+
+            # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
             front_vertex.state = 3
+            for i in front_vertex.faces:
+                self.faces[i].state = 3
+            
+
+            # search for the gates and the front vertex neighboring vertices are flagged conquered
+            self.find_the_gate(front_vertex,c_gate)
+
             return Vertex_removed(front_vertex,c_gate)
+        
         
         # else, (if its front vertex is free and has a valence > 6) or (if its front vertex is tagged conquered)
         elif (front_vertex.state == 1 and len(front_vertex.faces)>6) or front_vertex.state == 2 :
-            self.find_the_gate_4_null_path(front_vertex,c_gate)
-            return None
+            # The front face is flagged conquered
+            front_face.state = 2
+
+            # creates the 2 new gate 
+            new_gates = [[front_face_information[2:]],[front_face_information[3,1]]]
+
+            # add the gates to the fifo
+            for gate in new_gates:
+                gate[0].state = 2 
+                gate[1].state = 2
+                self.gate.append(gate)
+
+
+            #il faudrait voir comment implémenter le cas Null_patch dans vertex_removed
+            return "Null_patch"
         
-        # else if the front face is tagged conquered or to be removed
-        else :
-            return None
+        raise Exception("Error in the decimating conquest")
+        
+        
 
 
 

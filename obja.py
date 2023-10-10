@@ -5,7 +5,7 @@ import numpy as np
 import random
 from enum import Enum
 
-class State_vertex(Enum):
+class State(Enum):
     Free = 1
     Conquered = 2
     To_be_removed = 3
@@ -24,6 +24,7 @@ class Face:
         self.b = b
         self.c = c
         self.visible = visible
+        self.sate = State.Free   # ajout du state pour les faces
 
     def from_array(array):
         """
@@ -161,7 +162,7 @@ class Vertex:
         self.index = index
         self.coordinates = coordinates
         self.faces = []
-        self.state = State_vertex.Free         # see class State
+        self.state = State.Free         # see class State
         self.retriangulation_type = 0          # +1 => + and -1 => - and 0 => nothing...
         self.visible = True
 class Model:
