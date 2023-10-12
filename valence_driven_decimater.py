@@ -192,6 +192,35 @@ class Decimater(obja.Model):
         # TO DO : create the if statements depending the + and - for attributing + and - and creating face (create a Face object and use memorize_face of Model for adding it in the model)        
 
 
+def obj_to_obja(model_obj,output_name):
+    # Open the output file
+    with open(output_name, 'w') as output:
+        # Create obja object
+        output_model = obja.Output(output, random_color=False)
+        # First put all vertex present
+        index_vertex_created = []
+        for vertex in model_obj.vertices:
+            # A vertex removed is a vertex with no connection (no faces)
+            if not(vertex.faces):
+                continue
+            output_model.add_vertex(vertex.index, vertex.coordinates)
+            index_vertex_created.append(vertex.index)
+
+        for index_face in range(len(model_obj.faces)):
+            face = model_obj.faces[index_face]
+            # A face removed is a not visible face
+            if not(face.visible):
+                continue
+            if not(face.a) in index_vertex_created:
+                raise Exception('Vertex a of index {} not present in face of index {}'.format(face.a, index_face))
+            elif not(face.b) in index_vertex_created:
+                raise Exception('Vertex b of index {} not present in face of index {}'.format(face.b, index_face))
+            elif not(face.c) in index_vertex_created:
+                raise Exception('Vertex c of index {} not present in face of index {}'.format(face.c, index_face))
+            else:
+                output_model.add_face(index_face, face)
+
+
 
 
        
@@ -203,7 +232,7 @@ def main():
     np.seterr(invalid = 'raise')
     model = Decimater()
     model.parse_file('example/suzanne.obj')
-    model.complete_model()
+    # model.complete_model()
     model.decimateA()
 
 
