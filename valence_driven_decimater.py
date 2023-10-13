@@ -72,67 +72,9 @@ class Decimater(obja.Model):
                 
         raise Exception("The two vertex given doesn't correspond to a gate.")
     
-    def cleaning_conquest(self):
-        val_output = []
-
-        # inititialisation 
-        index_init = random.randint(0, len(self.faces)) # random index for faces
-        faces_init = self.faces[index_init]
-
-        init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-        self.gate(init_gate)
-
-
-        
-
-        while len(self.gate) != 0:
-
-            c_gate = self.gate.popleft()
-
-            # search for the front face information
-            front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
-            front_vertex = front_face_information[3]
-            front_face = self.faces[front_face_information[0]]
-            if len(front_vertex.faces) == 3:
-                val_output.append(3)
-
-                 # The front face is flagged to be removed
-                front_face.state = 3
-
-                # creates the 2 new gate 
-                new_gates = [[front_face_information[2:]],[front_face_information[3,1]]]
-
-                # add the gates to the fifo
-                for gate in new_gates:
-                    gate[0].state = 2 
-                    gate[1].state = 2
-                    self.gate.append(gate)
-
-
-
-            else :
-                val_output.append("Null_patch")
-                 # The front face is flagged conquered
-                front_face.state = 2
-
-                # creates the 2 new gate 
-                new_gates = [[front_face_information[2:]],[front_face_information[3,1]]]
-
-                # add the gates to the fifo
-                for gate in new_gates:
-                    gate[0].state = 2 
-                    gate[1].state = 2
-
-                self.find_the_gate( vertice_center,new_gates[0], init_gate = None)
-                self.find_the_gate( vertice_center,new_gates[1], init_gate = None)
-
                 
 
         
-
-    
-
-
     
     def decimating_conquest(self):
 
@@ -182,8 +124,72 @@ class Decimater(obja.Model):
             return "Null_patch"
         
         raise Exception("Error in the decimating conquest")
-        
-        
+    
+
+    def cleaning_conquest(self):
+
+    #Cleaning Conquest function for removing redundant vertices and faces in a triangle mesh.
+
+    # Cleaning Conquest is a series of operations performed after removing redundant vertices in a triangle mesh.
+    #Its main goal is to ensure that the simplified mesh maintains validity and reasonable topological structure.
+
+    #Parameters:
+    #- self: Decimater object containing the triangle mesh model and related data.
+
+    #Returns:
+    #No return value; it directly modifies the model data.
+
+    val_output = []  # Used to save the results of each operation
+
+    # Randomly select an initial face
+    index_init = random.randint(0, len(self.faces))
+    faces_init = self.faces[index_init]
+
+    # Create the first gate
+    init_gate = [self.vertices[faces_init.a], self.vertices[faces_init.b]]
+    self.gate(init_gate)
+
+    while len(self.gate) != 0:
+        c_gate = self.gate.popleft()
+
+        # Find information about the front face
+        front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
+        front_vertex = front_face_information[3]
+        front_face = self.faces[front_face_information[0]]
+
+        if len(front_vertex.faces) == 3:
+            val_output.append(3)
+
+            # Mark the front face for removal
+            front_face.state = 3
+
+            # Create two new gates
+            new_gates = [front_face_information[2:], front_face_information[3, 1]]
+
+            # Add the new gates to the queue
+            for gate in new_gates:
+                gate[0].state = 2
+                gate[1].state = 2
+                self.gate.append(gate)
+        else:
+            val_output.append("Null_patch")
+
+            # Mark the front face as conquered
+            front_face.state = 2
+
+            # Create two new gates
+            new_gates = [front_face_information[2:], front_face_information[3, 1]]
+
+            # Add the new gates to the queue
+            for gate in new_gates:
+                gate[0].state = 2
+                gate[1].state = 2
+
+            # Find and mark the surrounding gates
+            self.find_the_gate(front_vertex, new_gates[0], init_gate=None)
+            self.find_the_gate(front_vertex, new_gates[1], init_gate=None)
+
+    
 
 
 
