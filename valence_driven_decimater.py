@@ -345,21 +345,41 @@ class Decimater(obja.Model):
                     border_patch[3].retriangulation_type=-1
                     border_patch[4].retriangulation_type=1
                     border_patch[5].retriangulation_type=-1
+                    # Create faces
+                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                    self.recreate_faces([border_patch[0].index,border_patch[4].index,border_patch[5].index])
+                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
                 elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=
-                    border_patch[3].retriangulation_type=
-                    border_patch[4].retriangulation_type=
-                    border_patch[5].retriangulation_type=
+                    border_patch[2].retriangulation_type=-1
+                    border_patch[3].retriangulation_type=1
+                    border_patch[4].retriangulation_type=-1
+                    border_patch[5].retriangulation_type=1
+                    # Create faces
+                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[5].index])
+                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
+                    self.recreate_faces([border_patch[1].index,border_patch[3].index,border_patch[5].index])
+                    self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[5].index])
                 elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=
-                    border_patch[3].retriangulation_type=
-                    border_patch[4].retriangulation_type=
-                    border_patch[5].retriangulation_type=
+                    border_patch[2].retriangulation_type=-1
+                    border_patch[3].retriangulation_type=1
+                    border_patch[4].retriangulation_type=-1
+                    border_patch[5].retriangulation_type=1
+                    # Create faces
+                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[5].index])
+                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
+                    self.recreate_faces([border_patch[1].index,border_patch[3].index,border_patch[5].index])
+                    self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[5].index])
                 elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=
-                    border_patch[3].retriangulation_type=
-                    border_patch[4].retriangulation_type=
-                    border_patch[5].retriangulation_type=
+                    border_patch[2].retriangulation_type=1
+                    border_patch[3].retriangulation_type=-1
+                    border_patch[4].retriangulation_type=1
+                    border_patch[5].retriangulation_type=-1
+                    # Create faces
+                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                    self.recreate_faces([border_patch[0].index,border_patch[4].index,border_patch[5].index])
+                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
                 else : raise Exception("Unexpected retriangulation_type for gate vertices")
             case _:
                 raise Exception("Unexpected valence (<3 or >6)")  
