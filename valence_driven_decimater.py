@@ -185,7 +185,7 @@ class Decimater(obja.Model):
                 gate[0].state = 2
                 gate[1].state = 2
 
-            # Find and mark the surrounding gates
+            # Find and mark all the surrounding gates
             self.find_the_gate(front_vertex, new_gates[0], init_gate=None)
             self.find_the_gate(front_vertex, new_gates[1], init_gate=None)
 
