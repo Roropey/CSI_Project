@@ -90,6 +90,7 @@ class Decimater(obja.Model):
         if front_face == 2 or front_face == 3:
             return None
 
+
         #elif the front vertex is free and has a valence <= 6
         elif front_vertex.state == 1 and len(front_vertex.faces)<=6:
 
@@ -137,43 +138,56 @@ class Decimater(obja.Model):
     #- self: Decimater object containing the triangle mesh model and related data.
 
     #Returns:
-    #No return value; it directly modifies the model data.
 
-    val_output = []  # Used to save the results of each operation
-
-    # Randomly select an initial face
-    index_init = random.randint(0, len(self.faces))
-    faces_init = self.faces[index_init]
-
-    # Create the first gate
-    init_gate = [self.vertices[faces_init.a], self.vertices[faces_init.b]]
-    self.gate(init_gate)
-
-    while len(self.gate) != 0:
+  
         c_gate = self.gate.popleft()
 
         # Find information about the front face
         front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
+        
+        # if its front face is tagged conquered or to be removed
+        if front_face == 2 or front_face == 3:
+            return None
 
-        if len(front_vertex.faces) == 3:
-            val_output.append(3)
+
+        elif len(front_vertex.faces) == 3 and front_vertex.state == 1 :
 
             # Mark the front face for removal
             front_face.state = 3
+            
+            # find the edge of the patch
+            fg1 = self.gate_to_face(c_gate[1],front_vertex)
+            fg2 = self.gate_to_face(front_vertex, fg1[3])
 
-            # Create two new gates
-            new_gates = [front_face_information[2:], front_face_information[3, 1]]
+            # Mark the other face for removal
+            self.faces[fg1[0]].state = 3
+            self.faces[fg2[0]].state = 3
 
-            # Add the new gates to the queue
-            for gate in new_gates:
+            # Create two intermediare gates
+            intermediaire_gates = [ [c_gate[1],fg1[3]] , [fg1[3]],fg2[3] ]
+
+            # find the other gates 
+            for gate in intermediaire_gates:
                 gate[0].state = 2
                 gate[1].state = 2
-                self.gate.append(gate)
-        else:
-            val_output.append("Null_patch")
+                f = self.gate_to_face(gate[0],gate[1])
 
+                # Create the two new gates
+                new_gates = [f[2:], f[3, 1]]
+
+                # Add the new gates to the queue
+                for gate in new_gates:
+                    gate[0].state = 2
+                    gate[1].state = 2
+                    self.gate.append(gate)
+                self.faces[f[0]].state = 2
+
+            return Vertex_removed(front_vertex,c_gate)
+
+        elif front_vertex.state == 1 or front_vertex == 2 :
+            
             # Mark the front face as conquered
             front_face.state = 2
 
@@ -184,31 +198,55 @@ class Decimater(obja.Model):
             for gate in new_gates:
                 gate[0].state = 2
                 gate[1].state = 2
+                self.gate.append(gate)
 
-            # Find and mark all the surrounding gates
-            self.find_the_gate(front_vertex, new_gates[0], init_gate=None)
-            self.find_the_gate(front_vertex, new_gates[1], init_gate=None)
+            return "Null_patch"
+
+                
 
     
 
 
 
-    def decimateA(self, output):
+    def decimateAB(self):
         # inititialisation 
+        output_val_A = []
+        output_val_B = []
         index_init = random.randint(0, len(self.faces)) # random index for faces
         faces_init = self.faces[index_init]
 
-        c_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-        self.gate(c_gate)
+        init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+        self.gate(init_gate)
+
+        # decimating_conquest
+        while len(self.gate) > 0 :
         
-        vertex_remove = self.decimating_conquest()
-        if vertex_remove == "Null_patch":
-            print("todo")
-        
-        elif vertex_remove :
-            print("todo")
-            # do the retriangulation
+            vertex_remove = self.decimating_conquest()
+            if vertex_remove == "Null_patch":
+                output_val_A.append(vertex_remove)
             
+            elif vertex_remove :
+                output_val_A.append(len(vertex_remove.faces))
+                self.retriangulation(vertex_remove)
+
+
+        
+        # cleaning_conquest
+        self.gate(init_gate)
+        while len(self.gate) > 0 :
+        
+            vertex_remove = self.cleaning_conquest()
+            if vertex_remove == "Null_patch":
+                output_val_B.append(vertex_remove)
+            
+            elif vertex_remove :
+                output_val_B.append(len(vertex_remove.faces))
+                self.retriangulation(vertex_remove)
+        
+        return init_gate,output_val_A,output_val_B
+    
+            
+    
     def recreate_faces(self,indices):
         face = obja.Face.from_array(indices)
         face.test(self.vertices, self.line)
