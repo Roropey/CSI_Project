@@ -68,9 +68,9 @@ class Decimater(obja.Model):
             elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a]]
             elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b]]
-                
-        raise Exception("The two vertex given doesn't correspond to a gate.")
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b]]        
+        self.print_faces()
+        raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
     
                 
 
@@ -85,19 +85,18 @@ class Decimater(obja.Model):
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
 
-
         # if its front face is tagged conquered or to be removed
-        if front_face == 2 or front_face == 3:
+        if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
             return None
 
 
         #elif the front vertex is free and has a valence <= 6
-        elif front_vertex.state == 1 and len(front_vertex.faces)<=6:
+        elif front_vertex.state == obja.State.Free and len(front_vertex.faces)<=6:
 
             # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
-            front_vertex.state = 3
+            front_vertex.state = obja.State.To_be_removed
             for i in front_vertex.faces:
-                self.faces[i].state = 3
+                self.faces[i].state = obja.State.To_be_removed
             
 
             # search for the gates and the front vertex neighboring vertices are flagged conquered
@@ -107,24 +106,25 @@ class Decimater(obja.Model):
         
         
         # else, (if its front vertex is free and has a valence > 6) or (if its front vertex is tagged conquered)
-        elif (front_vertex.state == 1 and len(front_vertex.faces)>6) or front_vertex.state == 2 :
+        elif (front_vertex.state == obja.State.Free and len(front_vertex.faces)>6) or front_vertex.state == obja.State.Conquered :
             # The front face is flagged conquered
-            front_face.state = 2
+            front_face.state = obja.State.Conquered
 
             # creates the 2 new gate 
             new_gates = [[front_face_information[2:]],[front_face_information[3,1]]]
 
             # add the gates to the fifo
             for gate in new_gates:
-                gate[0].state = 2 
-                gate[1].state = 2
+                gate[0].state = obja.State.Conquered 
+                gate[1].state = obja.State.Conquered
                 self.gate.append(gate)
 
 
             #il faudrait voir comment implémenter le cas Null_patch dans vertex_removed
             return "Null_patch"
-        
-        raise Exception("Error in the decimating conquest")
+        else:
+            #self.print_faces()
+            raise Exception("Error in the decimating conquest")
     
 
     def cleaning_conquest(self):
@@ -148,30 +148,30 @@ class Decimater(obja.Model):
         front_face = self.faces[front_face_information[0]]
         
         # if its front face is tagged conquered or to be removed
-        if front_face == 2 or front_face == 3:
+        if front_face == obja.State.Conquered or front_face == obja.State.To_be_removed:
             return None
 
 
-        elif len(front_vertex.faces) == 3 and front_vertex.state == 1 :
+        elif len(front_vertex.faces) == obja.State.To_be_removed and front_vertex.state == obja.State.Free :
 
             # Mark the front face for removal
-            front_face.state = 3
+            front_face.state = obja.State.To_be_removed
             
             # find the edge of the patch
             fg1 = self.gate_to_face(c_gate[1],front_vertex)
             fg2 = self.gate_to_face(front_vertex, fg1[3])
 
             # Mark the other face for removal
-            self.faces[fg1[0]].state = 3
-            self.faces[fg2[0]].state = 3
+            self.faces[fg1[0]].state = obja.State.To_be_removed
+            self.faces[fg2[0]].state = obja.State.To_be_removed
 
             # Create two intermediare gates
             intermediaire_gates = [ [c_gate[1],fg1[3]] , [fg1[3]],fg2[3] ]
 
             # find the other gates 
             for gate in intermediaire_gates:
-                gate[0].state = 2
-                gate[1].state = 2
+                gate[0].state = obja.State.Conquered
+                gate[1].state = obja.State.Conquered
                 f = self.gate_to_face(gate[0],gate[1])
 
                 # Create the two new gates
@@ -179,25 +179,25 @@ class Decimater(obja.Model):
 
                 # Add the new gates to the queue
                 for gate in new_gates:
-                    gate[0].state = 2
-                    gate[1].state = 2
+                    gate[0].state = obja.State.Conquered
+                    gate[1].state = obja.State.Conquered
                     self.gate.append(gate)
-                self.faces[f[0]].state = 2
+                self.faces[f[0]].state = obja.State.Conquered
 
             return Vertex_removed(front_vertex,c_gate)
 
-        elif front_vertex.state == 1 or front_vertex == 2 :
+        elif front_vertex.state == obja.State.Free or front_vertex == obja.State.Conquered :
             
             # Mark the front face as conquered
-            front_face.state = 2
+            front_face.state = obja.State.Conquered
 
             # Create two new gates
             new_gates = [front_face_information[2:], front_face_information[3, 1]]
 
             # Add the new gates to the queue
             for gate in new_gates:
-                gate[0].state = 2
-                gate[1].state = 2
+                gate[0].state = obja.State.Conquered
+                gate[1].state = obja.State.Conquered
                 self.gate.append(gate)
 
             return "Null_patch"
@@ -212,11 +212,11 @@ class Decimater(obja.Model):
         # inititialisation 
         output_val_A = []
         output_val_B = []
-        index_init = random.randint(0, len(self.faces)) # random index for faces
+        index_init = 1 # random.randint(0, len(self.faces)) # random index for faces
         faces_init = self.faces[index_init]
 
         init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-        self.gate(init_gate)
+        self.gate.append(init_gate)
 
         # decimating_conquest
         while len(self.gate) > 0 :
@@ -232,7 +232,7 @@ class Decimater(obja.Model):
 
         
         # cleaning_conquest
-        self.gate(init_gate)
+        self.gate.append(init_gate)
         while len(self.gate) > 0 :
         
             vertex_remove = self.cleaning_conquest()
@@ -288,172 +288,143 @@ class Decimater(obja.Model):
             border_patch.remove(-1) # remove the right gate vertex last adding
             border_patch.remove(-1) # remove the left gate vertex last adding
         
-        match vertex_to_be_removed.valence:
-            case 3:
-                print("Valence of 3")
-                # Assigning retriangulation types
-                if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=1
-                elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=-1
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                else : raise Exception("Unexpected retriangulation_type for gate vertices")  
-                # Creating faces
+       
+        if vertex_to_be_removed.valence == 3:
+            print("Valence of 3")
+            # Assigning retriangulation types
+            if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=1
+            elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=-1
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+            else : raise Exception("Unexpected retriangulation_type for gate vertices")  
+            # Creating faces
+            self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+            
+        elif vertex_to_be_removed.valence == 4:
+            print("Valence of 4")
+            if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                # Create faces
                 self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[3].index])
+
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=-1
+                border_patch[3].retriangulation_type=1
+                #Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[3].index])
+                self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])            
+
+            elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=-1
+                border_patch[3].retriangulation_type=1
+                #Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[3].index])
+                self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
                 
-            case 4:
-                print("Valence of 4")
-                if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[3].index])
-
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=-1
-                    border_patch[3].retriangulation_type=1
-                    #Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[3].index])
-                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])            
-
-                elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=-1
-                    border_patch[3].retriangulation_type=1
-                    #Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[3].index])
-                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
-                    
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[3].index])
-                    
-                else : raise Exception("Unexpected retriangulation_type for gate vertices")    
-
-            case 5:
-                print("Valence of 5")
-                if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    border_patch[4].retriangulation_type=1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
-                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
-
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    border_patch[4].retriangulation_type=1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])                   
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
-                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
-
-                elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=-1
-                    border_patch[3].retriangulation_type=1
-                    border_patch[4].retriangulation_type=-1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[3].index])                 
-                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
-                    self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[0].index])
-                    
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    border_patch[4].retriangulation_type=1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
-                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
-
-                else : raise Exception("Unexpected retriangulation_type for gate vertices") 
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[3].index])
                 
-            case 6:
-                print("Valence of 6")
-                if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    border_patch[4].retriangulation_type=1
-                    border_patch[5].retriangulation_type=-1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[4].index,border_patch[5].index])
-                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=-1
-                    border_patch[3].retriangulation_type=1
-                    border_patch[4].retriangulation_type=-1
-                    border_patch[5].retriangulation_type=1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[5].index])
-                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
-                    self.recreate_faces([border_patch[1].index,border_patch[3].index,border_patch[5].index])
-                    self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[5].index])
-                elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
-                    border_patch[2].retriangulation_type=-1
-                    border_patch[3].retriangulation_type=1
-                    border_patch[4].retriangulation_type=-1
-                    border_patch[5].retriangulation_type=1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[5].index])
-                    self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
-                    self.recreate_faces([border_patch[1].index,border_patch[3].index,border_patch[5].index])
-                    self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[5].index])
-                elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
-                    border_patch[2].retriangulation_type=1
-                    border_patch[3].retriangulation_type=-1
-                    border_patch[4].retriangulation_type=1
-                    border_patch[5].retriangulation_type=-1
-                    # Create faces
-                    self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
-                    self.recreate_faces([border_patch[0].index,border_patch[4].index,border_patch[5].index])
-                    self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
-                else : raise Exception("Unexpected retriangulation_type for gate vertices")
-            case _:
-                raise Exception("Unexpected valence (<3 or >6)")  
+            else : raise Exception("Unexpected retriangulation_type for gate vertices")    
+
+        elif vertex_to_be_removed.valence == 5:
+            print("Valence of 5")
+            if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                border_patch[4].retriangulation_type=1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
+
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                border_patch[4].retriangulation_type=1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])                   
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
+
+            elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=-1
+                border_patch[3].retriangulation_type=1
+                border_patch[4].retriangulation_type=-1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[3].index])                 
+                self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
+                self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[0].index])
+                
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                border_patch[4].retriangulation_type=1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
+
+            else : raise Exception("Unexpected retriangulation_type for gate vertices") 
+            
+        elif vertex_to_be_removed.valence == 6:
+            print("Valence of 6")
+            if (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                border_patch[4].retriangulation_type=1
+                border_patch[5].retriangulation_type=-1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                self.recreate_faces([border_patch[0].index,border_patch[4].index,border_patch[5].index])
+                self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=-1
+                border_patch[3].retriangulation_type=1
+                border_patch[4].retriangulation_type=-1
+                border_patch[5].retriangulation_type=1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[5].index])
+                self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
+                self.recreate_faces([border_patch[1].index,border_patch[3].index,border_patch[5].index])
+                self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[5].index])
+            elif (border_patch[0].retriangulation_type==1) and (border_patch[1].retriangulation_type==1):
+                border_patch[2].retriangulation_type=-1
+                border_patch[3].retriangulation_type=1
+                border_patch[4].retriangulation_type=-1
+                border_patch[5].retriangulation_type=1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[5].index])
+                self.recreate_faces([border_patch[1].index,border_patch[2].index,border_patch[3].index])
+                self.recreate_faces([border_patch[1].index,border_patch[3].index,border_patch[5].index])
+                self.recreate_faces([border_patch[3].index,border_patch[4].index,border_patch[5].index])
+            elif (border_patch[0].retriangulation_type==-1) and (border_patch[1].retriangulation_type==-1):
+                border_patch[2].retriangulation_type=1
+                border_patch[3].retriangulation_type=-1
+                border_patch[4].retriangulation_type=1
+                border_patch[5].retriangulation_type=-1
+                # Create faces
+                self.recreate_faces([border_patch[0].index,border_patch[1].index,border_patch[2].index])
+                self.recreate_faces([border_patch[0].index,border_patch[2].index,border_patch[4].index])
+                self.recreate_faces([border_patch[0].index,border_patch[4].index,border_patch[5].index])
+                self.recreate_faces([border_patch[2].index,border_patch[3].index,border_patch[4].index])
+            else : raise Exception("Unexpected retriangulation_type for gate vertices")
+        else:
+            raise Exception("Unexpected valence (<3 or >6)")  
         # TO DO : create the if statements depending the + and - for attributing + and - and creating face (create a Face object and use memorize_face of Model for adding it in the model)        
 
 
-def obj_to_obja(model_obj,output_name):
-    # Open the output file
-    with open(output_name, 'w') as output:
-        # Create obja object
-        output_model = obja.Output(output, random_color=False)
-        # First put all vertex present
-        index_vertex_created = []
-        for vertex in model_obj.vertices:
-            # A vertex removed is a vertex with no connection (no faces)
-            if not(vertex.faces):
-                continue
-            elif len(vertex.faces) < 3:
-                raise Exception("Valence of vertex of index {} wrong (<3)".format(vertex.index))
-            else:
-                output_model.add_vertex(vertex.index, vertex.coordinates)
-                index_vertex_created.append(vertex.index)
 
-        for index_face in range(len(model_obj.faces)):
-            face = model_obj.faces[index_face]
-            # A face removed is a not visible face
-            if not(face.visible):
-                continue
-            if not(face.a) in index_vertex_created:
-                raise Exception('Vertex a of index {} not present in face of index {}'.format(face.a, index_face))
-            elif not(face.b) in index_vertex_created:
-                raise Exception('Vertex b of index {} not present in face of index {}'.format(face.b, index_face))
-            elif not(face.c) in index_vertex_created:
-                raise Exception('Vertex c of index {} not present in face of index {}'.format(face.c, index_face))
-            else:
-                output_model.add_face(index_face, face)
 
 
 
@@ -466,9 +437,10 @@ def main():
     """
     np.seterr(invalid = 'raise')
     model = Decimater()
-    model.parse_file('example/suzanne.obj')
+    model.parse_file('Test_Objects_low/Icosphere_only_5_valencies.obj')
     # model.complete_model()
-    model.decimateA()
+    model.decimateAB()
+    model.save_with_obja_f_by_f('Results_tests/DecimateA_Icosphere_only_5_valencies.obj')
 
 
 if __name__ == '__main__':

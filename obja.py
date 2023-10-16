@@ -24,7 +24,7 @@ class Face:
         self.b = b
         self.c = c
         self.visible = visible
-        self.sate = State.Free   # ajout du state pour les faces
+        self.state = State.Free   # ajout du state pour les faces
 
     def from_array(array):
         """
@@ -307,6 +307,75 @@ class Model:
         else:
             return
             # raise UnknownInstruction(split[0], self.line)
+    """
+    # Function to save the model into a obja file by doing first the vertex, and after the faces
+    def obj_to_obja_v_then_f(self,output_name):
+        # Open the output file
+        with open(output_name, 'w') as output:
+            # Create obja object
+            output_model = Output(output, random_color=False)
+            # First put all vertex present
+            index_vertex_created = []
+            for vertex in self.vertices:
+                # A vertex removed is a vertex with no connection (no faces)
+                if not(vertex.faces):
+                    continue
+                elif len(vertex.faces) < 3:
+                    raise Exception("Valence of vertex of index {} wrong (<3)".format(vertex.index))
+                else:
+                    output_model.add_vertex(vertex.index, vertex.coordinates)
+                    index_vertex_created.append(vertex.index)
+
+            for index_face in range(len(self.faces)):
+                face = self.faces[index_face]
+                # A face removed is a not visible face
+                if not(face.visible):
+                    continue
+                if not(face.a in index_vertex_created):
+                    raise Exception('Vertex a of index {} not present in face of index {}'.format(face.a, index_face))
+                elif not(face.b in index_vertex_created):
+                    raise Exception('Vertex b of index {} not present in face of index {}'.format(face.b, index_face))
+                elif not(face.c in index_vertex_created):
+                    raise Exception('Vertex c of index {} not present in face of index {}'.format(face.c, index_face))
+                else:
+                    output_model.add_face(index_face, face)
+    """
+
+    # Function to save the model into a obja file by doing faces by faces
+    def save_with_obja_f_by_f(self,output_name):
+        # Open the output file
+        with open(output_name, 'w') as output:
+            # Create obja object
+            output_model = Output(output, random_color=False)
+            # First put all vertex present
+            index_vertex_created = []
+            for index_face in range(len(self.faces)):
+                face = self.faces[index_face]
+                if not(face.visible):
+                    continue
+                if len(self.vertices[face.a].faces) < 3:
+                    raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
+                elif len(self.vertices[face.b].faces) < 3:
+                    raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
+                elif len(self.vertices[face.c].faces) < 3:
+                    raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
+                else:
+                    if not(face.a in index_vertex_created):
+                        output_model.add_vertex(face.a, self.vertices[face.a].coordinates)
+                        index_vertex_created.append(face.a)
+                    if not(face.b in index_vertex_created):
+                        output_model.add_vertex(face.b, self.vertices[face.b].coordinates)
+                        index_vertex_created.append(face.b)
+                    if not(face.c in index_vertex_created):
+                        output_model.add_vertex(face.c, self.vertices[face.c].coordinates)
+                        index_vertex_created.append(face.c)
+                    output_model.add_face(index_face, face)        
+
+    def print_faces(self):
+        for index_face in range(len(self.faces)):
+            face = self.faces[index_face]
+            print("Face of index {}, composed of:\n\t- a: {}\n\t- b: {}\n\t- c: {}\n\t- visibility: {}\n\t- state: {}".format(index_face,face.a,face.b,face.c,face.visible,face.state))
+            
 
 
 def parse_file(path):
