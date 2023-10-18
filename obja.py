@@ -34,6 +34,11 @@ class Face:
         face.set(array)
         face.visible = True
         return face
+    
+    def from_array_num(array):
+        face = Face(array[0],array[1],array[2])
+        face.visible = True
+        return face
 
     def set(self, array):
         """
@@ -193,7 +198,7 @@ class Model:
     """
     def memorize_face(self,face):
         self.faces.append(face)
-        index_face = len(self.faces) + 1
+        index_face = len(self.faces) - 1
         self.vertices[face.a].faces.append(index_face)
         self.vertices[face.b].faces.append(index_face)
         self.vertices[face.c].faces.append(index_face)
@@ -253,8 +258,8 @@ class Model:
 
         if split[0] == "v":
 
-            self.vertices.append(Vertex(len(self.vertices)+2,np.array(split[1:], np.double)))
-            # Maybe modify the +2...
+            self.vertices.append(Vertex(len(self.vertices),np.array(split[1:], np.double)))
+            # Maybe modify the +2... => need to remove the +2
         elif split[0] == "ev":
             self.get_vertex_from_string(split[1]).set(split[2:])
 
@@ -376,6 +381,10 @@ class Model:
             face = self.faces[index_face]
             print("Face of index {}, composed of:\n\t- a: {}\n\t- b: {}\n\t- c: {}\n\t- visibility: {}\n\t- state: {}".format(index_face,face.a,face.b,face.c,face.visible,face.state))
             
+    def print_vertices(self):
+        for index_vertex in range(len(self.vertices)):
+            vertex = self.vertices[index_vertex]
+            print("Vertex :\n\t- index in model: {}\n\t- index in vertex: {}\n\t- coordinates: {}\n\t- faces: {}\n\t- state: {}\n\t- retriangulation type: {}\n\t- visibility: {}".format(index_vertex,vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible))
 
 
 def parse_file(path):
