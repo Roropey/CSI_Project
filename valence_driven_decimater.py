@@ -27,6 +27,12 @@ class Decimater(obja.Model):
         self.deleted_faces = set()
         self.gate = deque()
         self.list_removed = []
+
+    def print_gate_index(self):
+        print("List index vertices on gates: ", end="")
+        for gate in self.gate:
+            print("({},{}) ".format(gate[0].index,gate[1].index),end="")
+        print()
     
     def find_the_gate(self, vertice_center,current_gate, init_gate = None ,count = 0):
         """
@@ -38,24 +44,20 @@ class Decimater(obja.Model):
         - init_gate: The initial gate used as a reference to stop the recursion.
 
         """
-        print(count)
+        print("Start find gate, counting: {}".format(count))
         count += 1
-        print("Find gate")
         # Set the initial gate
         if init_gate is None:
-            print("Init init")
-            init_gate = current_gate.copy() 
-            print(init_gate[0].index)
-            print(init_gate[1].index)
+            init_gate = [current_gate[1],current_gate[0]] # inverse in the self.gate all gate orientation as well as the init 
+            # => except of the first gate (init), all gate need to point in the future outside of the batch
+            current_gate = init_gate
+            print("Init gate initialized: ({},{})".format(init_gate[0].index,init_gate[1].index))
         print("Gate_to_face")
         # find the next_gate
-        gate_face = self.gate_to_face(vertice_center, current_gate[1])
-        print("new_face")
-        print(gate_face[0])
-        new_gate = gate_face[2:]
-        print("new_gate")
-        print(gate_face[2].index)
-        print(gate_face[3].index)
+        gate_face = self.gate_to_face(vertice_center, current_gate[0])
+        print("new_face: {}".format(gate_face[0]))
+        new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
+        print("new_gate: ({},{})".format(gate_face[2].index,gate_face[3].index))
 
         # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
         if not(new_gate[0].state == obja.State.Conquered  and new_gate[1].state == obja.State.Conquered)  and init_gate != new_gate : 
@@ -63,10 +65,11 @@ class Decimater(obja.Model):
             new_gate[0].state = obja.State.Conquered  
             new_gate[1].state = obja.State.Conquered 
             self.gate.append(new_gate)
+            self.print_gate_index()
 
         # Check if the new gate is different from the initial gate to avoid infinite recursion
         if init_gate != new_gate and count<10 :
-            print("Different new than init")
+            print("Different new than init => continue")
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
         if count>=10:
             raise Exception("ça tourne en boucle")
@@ -96,13 +99,13 @@ class Decimater(obja.Model):
     def decimating_conquest(self):
         print("Start function decimating")
         c_gate = self.gate.popleft()
-        #print("Search front info")
+        
         
         # search for the front face information
-        front_face_information = self.gate_to_face(c_gate[1], c_gate[0])
+        front_face_information = self.gate_to_face(c_gate[0], c_gate[1]) 
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
-        
+        print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
             print("Tagged conquered or to be removed")
@@ -120,7 +123,6 @@ class Decimater(obja.Model):
 
             # search for the gates and the front vertex neighboring vertices are flagged conquered
             self.find_the_gate(front_vertex,c_gate)
-            #print("Pass find the gate")
             return Vertex_removed(front_vertex,c_gate)
         
         
@@ -239,9 +241,8 @@ class Decimater(obja.Model):
         self.vertices[faces_init.b].retriangulation_type = -1
         init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
         self.gate.append(init_gate)
-
-        print('taille de la queue')
-        print(len(self.gate))
+        self.print_faces()
+        print('taille de la queue {}'.format(len(self.gate)))
 
         # decimating_conquest
         while len(self.gate) > 0 :
@@ -257,8 +258,7 @@ class Decimater(obja.Model):
                 self.retriangulation(vertex_remove)
                 self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
 
-            print('taille de la queue')
-            print(len(self.gate))
+            print('taille de la queue {}'.format(len(self.gate)))
 
         
         # cleaning_conquest
