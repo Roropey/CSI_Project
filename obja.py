@@ -386,6 +386,13 @@ class Model:
             vertex = self.vertices[index_vertex]
             print("Vertex :\n\t- index in model: {}\n\t- index in vertex: {}\n\t- coordinates: {}\n\t- faces: {}\n\t- state: {}\n\t- retriangulation type: {}\n\t- visibility: {}".format(index_vertex,vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible))
 
+    def print_single_face(self,index):
+        face = self.faces[index]
+        print("Face of index {}, composed of:\n\t- a: {}\n\t- b: {}\n\t- c: {}\n\t- visibility: {}\n\t- state: {}".format(face,face.a,face.b,face.c,face.visible,face.state))
+    
+    def print_single_vertex(self,index):
+        vertex = self.vertices[index]
+        print("Vertex :\n\t- index in model: {}\n\t- index in vertex: {}\n\t- coordinates: {}\n\t- faces: {}\n\t- state: {}\n\t- retriangulation type: {}\n\t- visibility: {}".format(index,vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible))
 
 def parse_file(path):
     """

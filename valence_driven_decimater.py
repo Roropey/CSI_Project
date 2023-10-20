@@ -34,6 +34,16 @@ class Decimater(obja.Model):
             print("({},{}) ".format(gate[0].index,gate[1].index),end="")
         print()
     
+    def set_everything_to_free(self):
+        for face in self.faces:
+            if face.visible:
+                face.state = obja.State.Free
+        for vertex in self.vertices:
+            if len(vertex.faces) > 0:
+                vertex.state = obja.State.Free
+
+
+    
     def find_the_gate(self, vertice_center,current_gate, init_gate = None ,count = 0):
         """
         Recursive function to find gates when the front vertex is to be removed.
@@ -48,7 +58,8 @@ class Decimater(obja.Model):
         count += 1
         # Set the initial gate
         if init_gate is None:
-            init_gate = [current_gate[1],current_gate[0]] # inverse in the self.gate all gate orientation as well as the init 
+            init_gate = [current_gate[1],current_gate[0]] 
+            # inverse in the self.gate all gate orientation as well as the init 
             # => except of the first gate (init), all gate need to point in the future outside of the batch
             current_gate = init_gate
             print("Init gate initialized: ({},{})".format(init_gate[0].index,init_gate[1].index))
@@ -57,7 +68,7 @@ class Decimater(obja.Model):
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
         print("new_face: {}".format(gate_face[0]))
         new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
-        print("new_gate: ({},{})".format(gate_face[2].index,gate_face[3].index))
+        print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
 
         # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
         if not(new_gate[0].state == obja.State.Conquered  and new_gate[1].state == obja.State.Conquered)  and init_gate != new_gate : 
@@ -87,9 +98,11 @@ class Decimater(obja.Model):
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a]]
             elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b]]        
-        self.print_faces()
-        print(len(self.gate))
-        print(gate_vertex1.faces)
+        #self.print_faces()
+        #info_previous = self.gate_to_face(gate_vertex2,gate_vertex1)
+        #print("Possible previous face: {}")
+        #self.print_vertices()
+        #self.print_vertices()
         raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
     
                 
@@ -102,7 +115,7 @@ class Decimater(obja.Model):
         
         
         # search for the front face information
-        front_face_information = self.gate_to_face(c_gate[0], c_gate[1]) 
+        front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
         print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
@@ -165,30 +178,30 @@ class Decimater(obja.Model):
         c_gate = self.gate.popleft()
 
         # Find information about the front face
-        front_face_information = self.gate_to_face(c_gate[1], c_gate[0])
+        front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
-        
+        print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
         if front_face == obja.State.Conquered or front_face == obja.State.To_be_removed:
             return None
 
 
-        elif len(front_vertex.faces) == obja.State.To_be_removed and front_vertex.state == obja.State.Free :
+        elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free :
 
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
             
             # find the edge of the patch
-            fg1 = self.gate_to_face(c_gate[1],front_vertex)
-            fg2 = self.gate_to_face(front_vertex, fg1[3])
+            face_up_right = self.gate_to_face(front_vertex,c_gate[1])
+            face_up_left = self.gate_to_face(front_vertex, face_up_right[3])
 
             # Mark the other face for removal
-            self.faces[fg1[0]].state = obja.State.To_be_removed
-            self.faces[fg2[0]].state = obja.State.To_be_removed
+            self.faces[face_up_right[0]].state = obja.State.To_be_removed
+            self.faces[face_up_left[0]].state = obja.State.To_be_removed
 
             # Create two intermediare gates
-            intermediaire_gates = [ [c_gate[1],fg1[3]] , [fg1[3]],fg2[3] ]
+            intermediaire_gates = [ [face_up_right[3], c_gate[1]] , [face_up_left[3], face_up_right[3]] ]
 
             # find the other gates 
             for gate in intermediaire_gates:
@@ -197,14 +210,16 @@ class Decimater(obja.Model):
                 f = self.gate_to_face(gate[0],gate[1])
 
                 # Create the two new gates
-                new_gates = [f[2:], f[3, 1]]
+                new_gates = [[f[3],f[2]], [f[1], f[3]]]
 
                 # Add the new gates to the queue
                 for gate in new_gates:
                     gate[0].state = obja.State.Conquered
                     gate[1].state = obja.State.Conquered
-                    self.gate.put(gate)
+                    self.gate.append(gate)
                 self.faces[f[0]].state = obja.State.Conquered
+            
+            front_vertex.state = obja.State.To_be_removed
 
             return Vertex_removed(front_vertex,c_gate)
 
@@ -214,7 +229,7 @@ class Decimater(obja.Model):
             front_face.state = obja.State.Conquered
 
             # Create two new gates
-            new_gates = [front_face_information[2:], [front_face_information[3],front_face_information[1]]]
+            new_gates = [[front_face_information[3],front_face_information[2]], [front_face_information[1],front_face_information[3]]]
 
             # Add the new gates to the queue
             for gate in new_gates:
@@ -235,7 +250,7 @@ class Decimater(obja.Model):
         output_val_A = []
         output_val_B = []
         print("Choosing first gate")
-        index_init = 1 # random.randint(0, len(self.faces)) # random index for faces
+        index_init = random.randint(0, len(self.faces)) # random index for faces
         faces_init = self.faces[index_init]
         self.vertices[faces_init.a].retriangulation_type = 1
         self.vertices[faces_init.b].retriangulation_type = -1
@@ -250,28 +265,48 @@ class Decimater(obja.Model):
             vertex_remove = self.decimating_conquest()
             print("\tanalyzing result decimating")
             if vertex_remove == "Null_patch":
-                output_val_A.append(vertex_remove)
+                output_val_A.append("Null_patch")
             
             elif vertex_remove :
                 #output_val_A.append(len(vertex_remove.faces))
-                output_val_A.append(vertex_remove.valence)
+                output_val_A.append([vertex_remove.valence,vertex_remove.coordinates])
                 self.retriangulation(vertex_remove)
                 self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
 
             print('taille de la queue {}'.format(len(self.gate)))
 
+        self.set_everything_to_free()
         
         # cleaning_conquest
+        cond = True
+        while cond:
+            index_init = random.randint(0, len(self.faces)) # random index for faces
+            faces_init = self.faces[index_init]
+            if not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
+                cond = False
+        
+        init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+        self.vertices[faces_init.a].retriangulation_type = 1
+        self.vertices[faces_init.b].retriangulation_type = -1   
         self.gate.append(init_gate)
+
+        self.print_single_vertex(init_gate[0].index)
+        self.print_single_vertex(init_gate[1].index)
+        
         while len(self.gate) > 0 :
         
             vertex_remove = self.cleaning_conquest()
+            print("Cleaning passed")
+            print(vertex_remove)
             if vertex_remove == "Null_patch":
-                output_val_B.append(vertex_remove)
+                print("Is a null patch")
+                output_val_B.append("Null_patch")
             
             elif vertex_remove :
-                output_val_B.append(len(vertex_remove.faces))
+                print("Need to be removed")
+                output_val_B.append([vertex_remove.valence,vertex_remove.coordinates])
                 self.retriangulation(vertex_remove)
+        print(index_init)
         
         return init_gate,output_val_A,output_val_B
     
@@ -286,6 +321,7 @@ class Decimater(obja.Model):
            
  
     def retriangulation(self,vertex_to_be_removed):
+        print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
         border_patch = vertex_to_be_removed.gate.copy() # List of all vertices around the vertex to be removed
         vertex_infos = self.vertices[vertex_to_be_removed.index]    # A variable to access directly info to avoid too much code
         while vertex_infos.faces:   # While there is faces to be removed from the "vertex to be removed", we search them
@@ -464,22 +500,16 @@ class Decimater(obja.Model):
         
 
 
-
-
-
-
-       
-
 def main():
     """
     Runs the program on the model given as parameter.
     """
     np.seterr(invalid = 'raise')
     model = Decimater()
-    model.parse_file('Test_Objects_low/Icosphere_only_5_valencies.obj')
+    model.parse_file('Test_Objects_low/Icosphere_bigger_5&6_valencies.obj')
     # model.complete_model()
     model.decimateAB()
-    model.save_with_obja_f_by_f('Results_tests/DecimateA_Icosphere_only_5_valencies.obj')
+    model.save_with_obja_f_by_f('Results_tests/DecimateA_Icosphere_bigger_5&6_valencies.obj')
 
 
 if __name__ == '__main__':
