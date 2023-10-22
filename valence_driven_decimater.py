@@ -16,6 +16,15 @@ class Vertex_removed():
         self.valence = len(vertex.faces)
         self.coordinates = vertex.coordinates
         self.gate = [gate[0].index,gate[1].index]
+    
+class Decimating_output():
+    def __init__(self,init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B):
+        self.init_gate_decimating = init_gate_decimating
+        self.init_gate_cleaning = init_gate_cleaning
+        self.output_val_A = output_val_A
+        self.output_val_B = output_val_B
+        
+
 
         
 class Decimater(obja.Model):
@@ -41,6 +50,11 @@ class Decimater(obja.Model):
         for vertex in self.vertices:
             if len(vertex.faces) > 0:
                 vertex.state = obja.State.Free
+            
+    def set_everything_to_zeros(self):
+        for vertex in self.vertices:
+            if len(vertex.faces) > 0:
+                vertex.retriangulation_type = 0
 
 
     
@@ -254,8 +268,8 @@ class Decimater(obja.Model):
         faces_init = self.faces[index_init]
         self.vertices[faces_init.a].retriangulation_type = 1
         self.vertices[faces_init.b].retriangulation_type = -1
-        init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-        self.gate.append(init_gate)
+        init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+        self.gate.append(init_gate_decimating)
         self.print_faces()
         print('taille de la queue {}'.format(len(self.gate)))
 
@@ -276,6 +290,8 @@ class Decimater(obja.Model):
             print('taille de la queue {}'.format(len(self.gate)))
         self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
+        #self.set_everything_to_zeros()
+
         print("Start cleaning conquest")
         # cleaning_conquest
         cond = True
@@ -285,13 +301,13 @@ class Decimater(obja.Model):
             if faces_init.visible and not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
                 cond = False
         
-        init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+        init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
         self.vertices[faces_init.a].retriangulation_type = 1
         self.vertices[faces_init.b].retriangulation_type = -1   
-        self.gate.append(init_gate)
+        self.gate.append(init_gate_cleaning)
 
-        self.print_single_vertex(init_gate[0].index)
-        self.print_single_vertex(init_gate[1].index)
+        self.print_single_vertex(init_gate_cleaning[0].index)
+        self.print_single_vertex(init_gate_cleaning[1].index)
         self.print_single_face(index_init)
         
         
@@ -310,7 +326,20 @@ class Decimater(obja.Model):
         print(index_init)
         self.print_count_valencies()
         self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
-        return init_gate,output_val_A,output_val_B
+        decimating_output = Decimating_output(init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
+        return decimating_output
+    
+
+    def decimate(self):
+        count = 0
+        decimating_output = []
+        while count <2:
+            decimating_output.append(self.decimateAB())
+            self.set_everything_to_free()
+            self.set_everything_to_zeros()
+            count += 1
+        return decimating_output
+
     
             
     
@@ -376,7 +405,10 @@ class Decimater(obja.Model):
                 self.vertices[border_patch[2]].retriangulation_type=-1
             elif (self.vertices[border_patch[0]].retriangulation_type==-1) and (self.vertices[border_patch[1]].retriangulation_type==-1):
                 self.vertices[border_patch[2]].retriangulation_type=1
-            else : raise Exception("Unexpected retriangulation_type for gate vertices")  
+            else : 
+                print(self.vertices[border_patch[0]].retriangulation_type)
+                print(self.vertices[border_patch[1]].retriangulation_type)
+                raise Exception("Unexpected retriangulation_type for gate vertices")  
             # Creating faces
             self.recreate_faces([self.vertices[border_patch[0]].index,self.vertices[border_patch[1]].index,self.vertices[border_patch[2]].index])
             
@@ -511,6 +543,7 @@ def main():
     model.parse_file('Test_Objects_low/Icosphere_bigger_5&6_valencies.obj')
     # model.complete_model()
     model.decimateAB()
+    #model.decimate()
     model.save_with_obja_f_by_f('Results_tests/DecimateA_Icosphere_bigger_5&6_valencies.obj')
 
 
