@@ -25,6 +25,7 @@ class Face:
         self.c = c
         self.visible = visible
         self.state = State.Free   # ajout du state pour les faces
+        self.code = 0             # Code pour la possibilité d'attribuer un code, potentiellement utile pour regrouper plusieurs faces/couleur
 
     def from_array(array):
         """
@@ -393,6 +394,18 @@ class Model:
     def print_single_vertex(self,index):
         vertex = self.vertices[index]
         print("Vertex :\n\t- index in model: {}\n\t- index in vertex: {}\n\t- coordinates: {}\n\t- faces: {}\n\t- state: {}\n\t- retriangulation type: {}\n\t- visibility: {}".format(index,vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible))
+
+    def print_count_valencies(self):
+        counts = []
+        for index_vertex in range(len(self.vertices)):
+            vertex = self.vertices[index_vertex]
+            while len(counts) <= len(vertex.faces):
+                counts.append(0)
+            counts[len(vertex.faces)] += 1
+        print("Count of vertex per valencies:")
+        for valence in range(len(counts)):
+            print("\t- {}: {}".format(valence,counts[valence]))
+
 
 def parse_file(path):
     """

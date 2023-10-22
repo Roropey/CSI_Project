@@ -250,7 +250,7 @@ class Decimater(obja.Model):
         output_val_A = []
         output_val_B = []
         print("Choosing first gate")
-        index_init = random.randint(0, len(self.faces)) # random index for faces
+        index_init = random.randint(0, len(self.faces)-1) # random index for faces
         faces_init = self.faces[index_init]
         self.vertices[faces_init.a].retriangulation_type = 1
         self.vertices[faces_init.b].retriangulation_type = -1
@@ -274,15 +274,15 @@ class Decimater(obja.Model):
                 self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
 
             print('taille de la queue {}'.format(len(self.gate)))
-
+        self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
-        
+        print("Start cleaning conquest")
         # cleaning_conquest
         cond = True
         while cond:
             index_init = random.randint(0, len(self.faces)) # random index for faces
             faces_init = self.faces[index_init]
-            if not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
+            if faces_init.visible and not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
                 cond = False
         
         init_gate = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
@@ -292,12 +292,13 @@ class Decimater(obja.Model):
 
         self.print_single_vertex(init_gate[0].index)
         self.print_single_vertex(init_gate[1].index)
+        self.print_single_face(index_init)
+        
         
         while len(self.gate) > 0 :
         
             vertex_remove = self.cleaning_conquest()
             print("Cleaning passed")
-            print(vertex_remove)
             if vertex_remove == "Null_patch":
                 print("Is a null patch")
                 output_val_B.append("Null_patch")
@@ -307,7 +308,8 @@ class Decimater(obja.Model):
                 output_val_B.append([vertex_remove.valence,vertex_remove.coordinates])
                 self.retriangulation(vertex_remove)
         print(index_init)
-        
+        self.print_count_valencies()
+        self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
         return init_gate,output_val_A,output_val_B
     
             
