@@ -132,16 +132,16 @@ class Decimater(obja.Model):
         front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
-        print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
+        #print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
-            print("Tagged conquered or to be removed")
+            #print("Tagged conquered or to be removed")
             return None
 
 
         #elif the front vertex is free and has a valence <= 6
         elif front_vertex.state == obja.State.Free and len(front_vertex.faces)<=6:
-            print("Free and <=6")
+            #print("Free and <=6")
             # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
             front_vertex.state = obja.State.To_be_removed
             for i in front_vertex.faces:
@@ -155,7 +155,7 @@ class Decimater(obja.Model):
         
         # else, (if its front vertex is free and has a valence > 6) or (if its front vertex is tagged conquered)
         elif (front_vertex.state == obja.State.Free and len(front_vertex.faces)>6) or front_vertex.state == obja.State.Conquered :
-            print("(free and >6) or (vertex conquered)")
+            #print("(free and >6) or (vertex conquered)")
             # The front face is flagged conquered
             front_face.state = obja.State.Conquered
 
@@ -195,7 +195,7 @@ class Decimater(obja.Model):
         front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
-        print("Front face state:{}".format(front_face.state))
+        #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
         if front_face == obja.State.Conquered or front_face == obja.State.To_be_removed:
             return None
@@ -276,13 +276,13 @@ class Decimater(obja.Model):
         self.gate.append(init_gate_decimating)
         #self.print_faces()
         #self.print_vertices()
-        print('taille de la queue {}'.format(len(self.gate)))
+        #print('taille de la queue {}'.format(len(self.gate)))
 
         # decimating_conquest
         while len(self.gate) > 0 :
             print("decimating_conquest")
             vertex_remove = self.decimating_conquest()
-            print("\tanalyzing result decimating")
+            #print("\tanalyzing result decimating")
             if vertex_remove == "Null_patch":
                 output_val_A.append("Null_patch")
             
@@ -292,7 +292,7 @@ class Decimater(obja.Model):
                 self.retriangulation(vertex_remove)
                 self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
 
-            print('taille de la queue {}'.format(len(self.gate)))
+            #print('taille de la queue {}'.format(len(self.gate)))
         self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
         #self.set_everything_to_zeros()
@@ -317,13 +317,13 @@ class Decimater(obja.Model):
         while len(self.gate) > 0 :
         
             vertex_remove = self.cleaning_conquest()
-            print("Cleaning passed")
+            #print("Cleaning passed")
             if vertex_remove == "Null_patch":
-                print("Is a null patch")
+                #print("Is a null patch")
                 output_val_B.append("Null_patch")
             
             elif vertex_remove :
-                print("Need to be removed")
+                #print("Need to be removed")
                 output_val_B.append([vertex_remove.valence,vertex_remove.coordinates])
                 self.retriangulation_4_cleaning_conquest(vertex_remove)
         print(index_init)
@@ -350,6 +350,7 @@ class Decimater(obja.Model):
             count_iteration += 1
             print(f"{count_iteration}ieme decimation")
             decimating_output.append(self.decimateAB())
+            self.save_with_obja_f_by_f(f'Results_tests/Decimate{count_iteration}.obj')
             self.set_everything_to_free()
             self.set_everything_to_zeros()
             count_point = self.count_point()
@@ -409,9 +410,9 @@ class Decimater(obja.Model):
     def retriangulation(self,vertex_to_be_removed):
         print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
         self.save_with_obja_f_by_f('Results_tests/test1.obj')
-        self.print_single_vertex(vertex_to_be_removed.index)
-        for face in self.vertices[vertex_to_be_removed.index].faces:
-            self.print_single_face(face)
+        #self.print_single_vertex(vertex_to_be_removed.index)
+        #for face in self.vertices[vertex_to_be_removed.index].faces:
+        #    self.print_single_face(face)
         border_patch = vertex_to_be_removed.gate.copy() # List of all vertices around the vertex to be removed
         vertex_infos = self.vertices[vertex_to_be_removed.index]    # A variable to access directly info to avoid too much code
         while vertex_infos.faces:   # While there is faces to be removed from the "vertex to be removed", we search them
@@ -425,19 +426,19 @@ class Decimater(obja.Model):
                 #print(index_face)
                 if self.faces[index_face].a == vertex_to_be_removed.index and self.faces[index_face].b == border_patch[-1]:
                     border_patch.append(self.faces[index_face].c)
-                    self.print_single_face(face)
+                    
                     self.remove_face(index_face)
                     not_breaking = False
                     break 
                 elif self.faces[index_face].b == vertex_to_be_removed.index and self.faces[index_face].c == border_patch[-1]:
                     border_patch.append(self.faces[index_face].a)
-                    self.print_single_face(face)
+                    
                     self.remove_face(index_face)
                     not_breaking = False
                     break
                 elif self.faces[index_face].c == vertex_to_be_removed.index and self.faces[index_face].a == border_patch[-1]:
                     border_patch.append(self.faces[index_face].b)
-                    self.print_single_face(face)
+                    
                     self.remove_face(index_face)
                     not_breaking = False
                     break
@@ -453,9 +454,9 @@ class Decimater(obja.Model):
             border_patch.pop() # remove the right gate vertex last adding
             border_patch.pop() # remove the left gate vertex last adding
         
-        print(len(border_patch))
-        for vertex in border_patch:
-            self.print_single_vertex(vertex)
+        #print(len(border_patch))
+        #for vertex in border_patch:
+        #    self.print_single_vertex(vertex)
         
        
         if vertex_to_be_removed.valence == 3:
@@ -524,8 +525,8 @@ class Decimater(obja.Model):
                 self.vertices[border_patch[3]].retriangulation_type=-1
                 self.vertices[border_patch[4]].retriangulation_type=1
                 # Create faces
-                self.recreate_faces([self.vertices[border_patch[0]].index,self.vertices[border_patch[1]].index,self.vertices[border_patch[2]].index])                   
-                self.recreate_faces([self.vertices[border_patch[0]].index,self.vertices[border_patch[2]].index,self.vertices[border_patch[4]].index])
+                self.recreate_faces([self.vertices[border_patch[0]].index,self.vertices[border_patch[1]].index,self.vertices[border_patch[4]].index])                   
+                self.recreate_faces([self.vertices[border_patch[1]].index,self.vertices[border_patch[2]].index,self.vertices[border_patch[4]].index])
                 self.recreate_faces([self.vertices[border_patch[2]].index,self.vertices[border_patch[3]].index,self.vertices[border_patch[4]].index])
 
             elif (self.vertices[border_patch[0]].retriangulation_type==1) and (self.vertices[border_patch[1]].retriangulation_type==1):
