@@ -204,6 +204,35 @@ class Model:
         self.vertices[face.b].faces.append(index_face)
         self.vertices[face.c].faces.append(index_face)
         
+    def memorize__new_face(self,face):
+        self.faces.append(face)
+        index_face = len(self.faces) - 1
+        self.vertices[face.a].faces.append(index_face)
+        self.vertices[face.b].faces.append(index_face)
+        self.vertices[face.c].faces.append(index_face)
+        if len(self.vertices[face.a].faces) < 3:
+            self.print_vertices()
+            self.print_single_vertex(face.a)
+            self.print_single_vertex(face.b)
+            self.print_single_vertex(face.c)
+            self.print_single_face(index_face)
+            raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
+        elif len(self.vertices[face.b].faces) < 3:
+            self.print_vertices()
+            self.print_single_vertex(face.a)
+            self.print_single_vertex(face.b)
+            self.print_single_vertex(face.c)
+            self.print_single_face(index_face)
+            raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
+        elif len(self.vertices[face.c].faces) < 3:
+            self.print_vertices()
+            self.print_single_vertex(face.a)
+            self.print_single_vertex(face.b)
+            self.print_single_vertex(face.c)
+            self.print_single_face(index_face)
+            raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
+                
+        
 
     def get_vertex_from_string(self, string):
         """

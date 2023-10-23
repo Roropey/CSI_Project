@@ -68,7 +68,7 @@ class Decimater(obja.Model):
         - init_gate: The initial gate used as a reference to stop the recursion.
 
         """
-        print("Start find gate, counting: {}".format(count))
+        #print("Start find gate, counting: {}".format(count))
         count += 1
         # Set the initial gate
         if init_gate is None:
@@ -76,17 +76,17 @@ class Decimater(obja.Model):
             # inverse in the self.gate all gate orientation as well as the init 
             # => except of the first gate (init), all gate need to point in the future outside of the batch
             current_gate = init_gate
-            print("Init gate initialized: ({},{})".format(init_gate[0].index,init_gate[1].index))
-        print("Gate_to_face")
+            #print("Init gate initialized: ({},{})".format(init_gate[0].index,init_gate[1].index))
+        #print("Gate_to_face")
         # find the next_gate
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
-        print("new_face: {}".format(gate_face[0]))
+        #print("new_face: {}".format(gate_face[0]))
         new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
-        print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
+        #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
 
         # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
         if not(new_gate[0].state == obja.State.Conquered  and new_gate[1].state == obja.State.Conquered)  and init_gate != new_gate : 
-            print("Not conquered gate")
+            #print("Not conquered gate")
             new_gate[0].state = obja.State.Conquered  
             new_gate[1].state = obja.State.Conquered 
             self.gate.append(new_gate)
@@ -94,7 +94,7 @@ class Decimater(obja.Model):
 
         # Check if the new gate is different from the initial gate to avoid infinite recursion
         if init_gate != new_gate and count<10 :
-            print("Different new than init => continue")
+            #print("Different new than init => continue")
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
         if count>=10:
             raise Exception("ça tourne en boucle")
@@ -264,13 +264,18 @@ class Decimater(obja.Model):
         output_val_A = []
         output_val_B = []
         print("Choosing first gate")
-        index_init = random.randint(0, len(self.faces)-1) # random index for faces
-        faces_init = self.faces[index_init]
+        cond = False
+        while not cond:     #on cherche une face qui est visible
+            index_init = random.randint(0, len(self.faces)-1) # random index for faces
+            faces_init = self.faces[index_init]
+            cond = faces_init.visible
+
         self.vertices[faces_init.a].retriangulation_type = 1
         self.vertices[faces_init.b].retriangulation_type = -1
         init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
         self.gate.append(init_gate_decimating)
-        self.print_faces()
+        #self.print_faces()
+        #self.print_vertices()
         print('taille de la queue {}'.format(len(self.gate)))
 
         # decimating_conquest
@@ -296,14 +301,12 @@ class Decimater(obja.Model):
         # cleaning_conquest
         cond = True
         while cond:
-            index_init = random.randint(0, len(self.faces)) # random index for faces
+            index_init = random.randint(0, len(self.faces)-1) # random index for faces
             faces_init = self.faces[index_init]
             if faces_init.visible and not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
                 cond = False
         
         init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-        self.vertices[faces_init.a].retriangulation_type = 1
-        self.vertices[faces_init.b].retriangulation_type = -1   
         self.gate.append(init_gate_cleaning)
 
         self.print_single_vertex(init_gate_cleaning[0].index)
@@ -322,7 +325,7 @@ class Decimater(obja.Model):
             elif vertex_remove :
                 print("Need to be removed")
                 output_val_B.append([vertex_remove.valence,vertex_remove.coordinates])
-                self.retriangulation(vertex_remove)
+                self.retriangulation_4_cleaning_conquest(vertex_remove)
         print(index_init)
         self.print_count_valencies()
         self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
@@ -330,14 +333,27 @@ class Decimater(obja.Model):
         return decimating_output
     
 
-    def decimate(self):
+    def count_point(self):
         count = 0
+        for vertex in self.vertices:
+            if vertex.visible:
+                count += 1
+        return count
+        
+
+    def decimate(self,nb_point_end = 15):
+        count_iteration = 0
+        count_point = self.count_point()
+        print(count_point)
         decimating_output = []
-        while count <2:
+        while count_point > nb_point_end:
+            count_iteration += 1
+            print(f"{count_iteration}ieme decimation")
             decimating_output.append(self.decimateAB())
             self.set_everything_to_free()
             self.set_everything_to_zeros()
-            count += 1
+            count_point = self.count_point()
+            print(count_point)
         return decimating_output
 
     
@@ -347,7 +363,51 @@ class Decimater(obja.Model):
         face = obja.Face.from_array_num(indices)
         face.state = obja.State.Conquered
         face.test(self.vertices, self.line)
-        self.memorize_face(face)
+        self.memorize__new_face(face)
+
+    def retriangulation_4_cleaning_conquest(self,vertex_to_be_removed):
+        print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
+        border_patch = vertex_to_be_removed.gate.copy() # List of all vertices around the vertex to be removed
+        vertex_infos = self.vertices[vertex_to_be_removed.index]    # A variable to access directly info to avoid too much code
+        while vertex_infos.faces:   # While there is faces to be removed from the "vertex to be removed", we search them
+            # print(vertex_infos.faces)
+            # print(border_patch)
+            # print(vertex_to_be_removed.index)
+            # self.print_faces()
+            # self.print_vertices()
+            for index_face in vertex_infos.faces:   # Visit all faces of the vertex to be removed to see if any face correspond to the next in the chain around
+                # Normally with the order of face to be removed should be in the counterclock order, starting with the face next to the gate face
+                # The gate face should be the last one to be removed
+                # If any face having the center following by the last adding into the chain as a "gate", then this is the next face, and so the third vertex the next vertex in the chain
+                # Knowing the chain order is required because removing faces will loose the patch organization information and so we need to memorize it for the retriangulation
+                # When found, added the vertex and remove the face, we break the for loop to research again if required
+                if self.faces[index_face].a == vertex_to_be_removed.index and self.faces[index_face].b == border_patch[-1]:
+                    border_patch.append(self.faces[index_face].c)
+                    self.remove_face(index_face)
+                    break 
+                elif self.faces[index_face].b == vertex_to_be_removed.index and self.faces[index_face].c == border_patch[-1]:
+                    border_patch.append(self.faces[index_face].a)
+                    self.remove_face(index_face)
+                    break
+                elif self.faces[index_face].c == vertex_to_be_removed.index and self.faces[index_face].a == border_patch[-1]:
+                    border_patch.append(self.faces[index_face].b)
+                    self.remove_face(index_face)
+                    break
+            
+            #raise Exception("Not found next vertex in the chain around")
+        if len(border_patch) != vertex_to_be_removed.valence + 2:   
+            # Through this process, since the gate face will be the last processed, the two vertices of the gates will be added in the chain and so being two time in it
+            # (Once added when the left face of the gate face will be removed for the left gate vertex, and once the gate face is removed for the right gate vertex)
+            # Therefore, the border_patch is required to have two more
+            raise Exception("Unexpected valence or border_patch size (!=)")
+        else:
+            border_patch.pop() # remove the right gate vertex last adding
+            border_patch.pop() # remove the left gate vertex last adding
+
+
+        # Creating faces
+        self.recreate_faces([self.vertices[border_patch[0]].index,self.vertices[border_patch[1]].index,self.vertices[border_patch[2]].index])
+        vertex_infos.visible = False
 
            
  
@@ -532,6 +592,8 @@ class Decimater(obja.Model):
         else:
             raise Exception("Unexpected valence (<3 or >6)")  
         
+        vertex_infos.visible = False
+        
 
 
 def main():
@@ -542,8 +604,8 @@ def main():
     model = Decimater()
     model.parse_file('Test_Objects_low/Icosphere_bigger_5&6_valencies.obj')
     # model.complete_model()
-    model.decimateAB()
-    #model.decimate()
+    #model.decimateAB()
+    model.decimate(15)
     model.save_with_obja_f_by_f('Results_tests/DecimateA_Icosphere_bigger_5&6_valencies.obj')
 
 
