@@ -276,11 +276,16 @@ class Decimater(obja.Model):
         self.gate.append(init_gate_decimating)
         #self.print_faces()
         #self.print_vertices()
+        # import color_generator
+        # Copy = self.copy()
+        # colors = color_generator.generate_N_RGB_colors(20)
+        # i = 0
         print('taille de la queue {}'.format(len(self.gate)))
 
         # decimating_conquest
         while len(self.gate) > 0 :
             print("decimating_conquest")
+            c_gate = self.gate[0]
             vertex_remove = self.decimating_conquest()
             print("\tanalyzing result decimating")
             if vertex_remove == "Null_patch":
@@ -288,11 +293,19 @@ class Decimater(obja.Model):
             
             elif vertex_remove :
                 #output_val_A.append(len(vertex_remove.faces))
+                # print("Color {}".format(i))
+                # Copy.vertices[vertex_remove.index].coloring_vertex(colors[i])
+                # Copy.vertices[c_gate[0].index].coloring_vertex(colors[i])
+                # Copy.vertices[c_gate[1].index].coloring_vertex(colors[i])
+                # i+=1
+
                 output_val_A.append([vertex_remove.valence,vertex_remove.coordinates])
                 self.retriangulation(vertex_remove)
                 self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
 
             print('taille de la queue {}'.format(len(self.gate)))
+        self.coloring_vertex_based_type_retriang()
+        # Copy.save_with_obja_f_by_f('Results_tests/Just_visiting_decimating_conquest.obj')
         self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
         #self.set_everything_to_zeros()
@@ -307,11 +320,12 @@ class Decimater(obja.Model):
                 cond = False
         
         init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-        self.gate.append(init_gate_cleaning)
+        self.print_count_valencies()
+        #self.gate.append(init_gate_cleaning)
 
-        self.print_single_vertex(init_gate_cleaning[0].index)
-        self.print_single_vertex(init_gate_cleaning[1].index)
-        self.print_single_face(index_init)
+        #self.print_single_vertex(init_gate_cleaning[0].index)
+        #self.print_single_vertex(init_gate_cleaning[1].index)
+        #self.print_single_face(index_init)
         
         
         while len(self.gate) > 0 :
@@ -328,6 +342,7 @@ class Decimater(obja.Model):
                 self.retriangulation_4_cleaning_conquest(vertex_remove)
         print(index_init)
         self.print_count_valencies()
+        self.coloring_vertex_based_type_retriang()
         self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
         decimating_output = Decimating_output(init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
         return decimating_output
@@ -602,11 +617,11 @@ def main():
     """
     np.seterr(invalid = 'raise')
     model = Decimater()
-    model.parse_file('Test_Objects_low/Icosphere_bigger_5&6_valencies.obj')
+    model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     # model.complete_model()
-    #model.decimateAB()
-    model.decimate(15)
-    model.save_with_obja_f_by_f('Results_tests/DecimateA_Icosphere_bigger_5&6_valencies.obj')
+    model.decimateAB()
+    # model.decimate(15)
+    model.save_with_obja_f_by_f('Results_tests/DecimateAB_sphere_4567.obj')
 
 
 if __name__ == '__main__':

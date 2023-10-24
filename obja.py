@@ -19,13 +19,12 @@ class Face:
     The class that holds a, b, and c, the indices of the vertices of the face.
     """
 
-    def __init__(self, a, b, c, visible=True):
+    def __init__(self, a, b, c, visible=True,state = State.Free):
         self.a = a
         self.b = b
         self.c = c
         self.visible = visible
-        self.state = State.Free   # ajout du state pour les faces
-        self.code = 0             # Code pour la possibilité d'attribuer un code, potentiellement utile pour regrouper plusieurs faces/couleur
+        self.state = state   # ajout du state pour les faces
 
     def from_array(array):
         """
@@ -164,13 +163,19 @@ class UnknownInstruction(Exception):
         return f'Instruction {self.instruction} unknown (line {self.line})'
 
 class Vertex:
-    def __init__(self,index,coordinates):
+    def __init__(self,index,coordinates,face = [],state=State.Free,retriangulation_type=0,visible=True,color=None):
         self.index = index
         self.coordinates = coordinates
-        self.faces = []
-        self.state = State.Free         # see class State
-        self.retriangulation_type = 0          # +1 => + and -1 => - and 0 => nothing...
-        self.visible = True
+        self.faces = face.copy()
+        self.state = state                               # see class State
+        self.retriangulation_type = retriangulation_type # +1 => + and -1 => - and 0 => nothing...
+        self.visible = visible
+        self.color = color
+    def coloring_vertex(self,color):
+        if len(color) != 3:
+            raise Exception("Wrong input for coloring")
+        self.color = [color[0],color[1],color[2]]
+
 class Model:
     """
     The OBJA model.
@@ -216,21 +221,21 @@ class Model:
             self.print_single_vertex(face.b)
             self.print_single_vertex(face.c)
             self.print_single_face(index_face)
-            raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
+            #raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
         elif len(self.vertices[face.b].faces) < 3:
             self.print_vertices()
             self.print_single_vertex(face.a)
             self.print_single_vertex(face.b)
             self.print_single_vertex(face.c)
             self.print_single_face(index_face)
-            raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
+            #raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
         elif len(self.vertices[face.c].faces) < 3:
             self.print_vertices()
             self.print_single_vertex(face.a)
             self.print_single_vertex(face.b)
             self.print_single_vertex(face.c)
             self.print_single_face(index_face)
-            raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
+            #raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
                 
         
 
@@ -375,6 +380,16 @@ class Model:
                 else:
                     output_model.add_face(index_face, face)
     """
+    def copy(self):
+        Copy = Model()
+        for vertex in self.vertices:
+            Copy.vertices.append(Vertex(vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible,vertex.color))
+        for face in self.faces:
+            Copy.faces.append(Face(face.a,face.b,face.c,face.visible,face.state))
+        return Copy
+
+
+
 
     # Function to save the model into a obja file by doing faces by faces
     def save_with_obja_f_by_f(self,output_name):
@@ -388,23 +403,35 @@ class Model:
                 face = self.faces[index_face]
                 if not(face.visible):
                     continue
-                if len(self.vertices[face.a].faces) < 3:
-                    raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
-                elif len(self.vertices[face.b].faces) < 3:
-                    raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
-                elif len(self.vertices[face.c].faces) < 3:
-                    raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
-                else:
-                    if not(face.a in index_vertex_created):
+                # if len(self.vertices[face.a].faces) < 3:
+                #     print("")
+                #     #raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
+                # elif len(self.vertices[face.b].faces) < 3:
+                #     print("")
+                #     #raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
+                # elif len(self.vertices[face.c].faces) < 3:
+                #     print("")
+                #     #raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
+                # else:
+                if not(face.a in index_vertex_created):
+                    if self.vertices[face.a].color:
+                        output_model.add_colored_vertex(face.a, self.vertices[face.a].coordinates, self.vertices[face.a].color)
+                    else:
                         output_model.add_vertex(face.a, self.vertices[face.a].coordinates)
-                        index_vertex_created.append(face.a)
-                    if not(face.b in index_vertex_created):
+                    index_vertex_created.append(face.a)
+                if not(face.b in index_vertex_created):
+                    if self.vertices[face.b].color:
+                        output_model.add_colored_vertex(face.b, self.vertices[face.b].coordinates, self.vertices[face.b].color)
+                    else:
                         output_model.add_vertex(face.b, self.vertices[face.b].coordinates)
-                        index_vertex_created.append(face.b)
-                    if not(face.c in index_vertex_created):
+                    index_vertex_created.append(face.b)
+                if not(face.c in index_vertex_created):
+                    if self.vertices[face.c].color:
+                        output_model.add_colored_vertex(face.c, self.vertices[face.c].coordinates, self.vertices[face.c].color)
+                    else:
                         output_model.add_vertex(face.c, self.vertices[face.c].coordinates)
-                        index_vertex_created.append(face.c)
-                    output_model.add_face(index_face, face)        
+                    index_vertex_created.append(face.c)
+                output_model.add_face(index_face, face)
 
     def print_faces(self):
         for index_face in range(len(self.faces)):
@@ -426,14 +453,31 @@ class Model:
 
     def print_count_valencies(self):
         counts = []
-        for index_vertex in range(len(self.vertices)):
-            vertex = self.vertices[index_vertex]
+        for vertex in self.vertices:
             while len(counts) <= len(vertex.faces):
                 counts.append(0)
             counts[len(vertex.faces)] += 1
         print("Count of vertex per valencies:")
         for valence in range(len(counts)):
             print("\t- {}: {}".format(valence,counts[valence]))
+
+    def coloring_vertex_based_type_retriang(self):
+        colors = [(0,0,1),(0,1,0),(1,0,0)] # type_retriangulation + 1 = index => [-,0,+]
+        for vertex in self.vertices:
+            vertex.coloring_vertex(colors[vertex.retriangulation_type+1])
+
+    def coloring_vertex_based_valencies(self):
+        import color_generator
+        # Code maybe not optimized but reuse already done code
+        counts = []
+        for vertex in self.vertices:
+            while len(counts) <= len(vertex.faces):
+                counts.append(0)
+            counts[len(vertex.faces)] += 1
+        colors = color_generator.generate_N_RGB_colors(len(counts))
+        for vertex in self.vertices:
+            vertex.coloring_vertex(colors[len(vertex.faces)])
+
 
 
 def parse_file(path):
@@ -465,6 +509,13 @@ class Output:
         """
         self.vertex_mapping[index] = len(self.vertex_mapping)
         print('v {} {} {}'.format(vertex[0], vertex[1], vertex[2]), file=self.output)
+
+    def add_colored_vertex(self,index,vertex,color):
+        """
+        Adds a new colored vertex to the model with the specified index.
+        """
+        self.vertex_mapping[index] = len(self.vertex_mapping)
+        print('v {} {} {} {} {} {}'.format(vertex[0], vertex[1], vertex[2], color[0], color[1], color[2]), file=self.output)
 
     def edit_vertex(self, index, vertex):
         """
