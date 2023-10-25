@@ -63,6 +63,7 @@ class Face:
         self.b = other.b
         self.c = other.c
         self.visible = other.visible
+        self.state = other.state
         return self
 
     def test(self, vertices, line="unknown"):
@@ -478,6 +479,9 @@ class Model:
         for vertex in self.vertices:
             vertex.coloring_vertex(colors[len(vertex.faces)])
 
+    def coloring_vertex_all_similar(self,color):
+        for vertex in self.vertices:
+            vertex.coloring_vertex(color)
 
 
 def parse_file(path):

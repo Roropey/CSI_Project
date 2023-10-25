@@ -277,21 +277,32 @@ class Decimater(obja.Model):
         #self.print_faces()
         #self.print_vertices()
         #print('taille de la queue {}'.format(len(self.gate)))
-
+        i=0
         # decimating_conquest
         while len(self.gate) > 0 :
             print("decimating_conquest")
+            c_gate = self.gate[0]
             vertex_remove = self.decimating_conquest()
             #print("\tanalyzing result decimating")
             if vertex_remove == "Null_patch":
                 output_val_A.append("Null_patch")
             
             elif vertex_remove :
+                Copy = self.copy()
+                Copy.coloring_vertex_all_similar((0.5,0.5,0.5))
+                Copy.vertices[c_gate[0].index].coloring_vertex((1,0,0))
+                Copy.vertices[c_gate[1].index].coloring_vertex((1,0,0))
+                Copy.vertices[vertex_remove.index].coloring_vertex((0,0,1))
+                Copy.save_with_obja_f_by_f(f'Results_tests/before_retriangulation_{i}.obj')
+
                 #output_val_A.append(len(vertex_remove.faces))
                 output_val_A.append([vertex_remove.valence,vertex_remove.coordinates])
                 self.retriangulation(vertex_remove)
                 self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
-
+                Copy = self.copy()
+                Copy.coloring_vertex_based_type_retriang()
+                Copy.save_with_obja_f_by_f(f'Results_tests/after_retriangulation_type_colored_{i}.obj')
+                i += 1
             #print('taille de la queue {}'.format(len(self.gate)))
         self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
@@ -609,13 +620,12 @@ def main():
     """
     np.seterr(invalid = 'raise')
     model = Decimater()
-    model.parse_file('Test_Objects_low/Icosphere_bigger_5&6_valencies.obj')
+    model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     # model.complete_model()
     
-    #model.decimateAB()
-    model.decimate(15)
-    print("Test")
-    model.save_with_obja_f_by_f('Results_tests/DecimateAB_suzanne.obj')
+    model.decimateAB()
+    #model.decimate(15)
+    model.save_with_obja_f_by_f('Results_tests/DecimateAB_sphere_4567.obj')
 
 
 if __name__ == '__main__':
