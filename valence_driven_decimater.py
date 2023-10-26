@@ -377,6 +377,23 @@ class Decimater(obja.Model):
         face.test(self.vertices, self.line)
         self.memorize_face(face)
 
+    def create_if(self,list_faces):
+        # Function to memorize faces if not existing already (in both direction (ABC and ACB for example))
+        # list_faces: list of Face object already created
+        can_create = True
+        for face_possible in list_faces:
+            points = [face_possible.a,face_possible.b,face_possible.c]
+            for face in self.faces:
+                if face.visible and (face.a in points and face.b in points and face.c in points):
+                    can_create = False
+        if can_create:
+            for face in list_faces:
+                face.state = obja.State.Conquered
+                face.test(self.vertices, self.line)
+                self.memorize_face(face)
+        return can_create
+
+
     def retriangulation_4_cleaning_conquest(self,vertex_to_be_removed):
         print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
         border_patch = vertex_to_be_removed.gate.copy() # List of all vertices around the vertex to be removed
