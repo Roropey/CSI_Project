@@ -53,7 +53,7 @@ class Face:
         """
         Clones a face from another face
         """
-        return Face(self.a, self.b, self.c, self.visible)
+        return Face(self.a, self.b, self.c, self.visible, self.state)
 
     def copy(self, other):
         """
@@ -172,6 +172,12 @@ class Vertex:
         self.retriangulation_type = retriangulation_type # +1 => + and -1 => - and 0 => nothing...
         self.visible = visible
         self.color = color
+
+    def clone(self):
+
+        return Vertex( self.index, self.coordinates, self.faces, self.state, self.retriangulation_type, self.visible, self.color)
+        
+
     def coloring_vertex(self,color):
         if len(color) != 3:
             raise Exception("Wrong input for coloring")
@@ -209,6 +215,7 @@ class Model:
         self.vertices[face.a].faces.append(index_face)
         self.vertices[face.b].faces.append(index_face)
         self.vertices[face.c].faces.append(index_face)
+        return index_face
         
     def memorize__new_face(self,face):
         self.faces.append(face)
@@ -348,48 +355,34 @@ class Model:
         else:
             return
             # raise UnknownInstruction(split[0], self.line)
+    
     """
-    # Function to save the model into a obja file by doing first the vertex, and after the faces
-    def obj_to_obja_v_then_f(self,output_name):
-        # Open the output file
-        with open(output_name, 'w') as output:
-            # Create obja object
-            output_model = Output(output, random_color=False)
-            # First put all vertex present
-            index_vertex_created = []
-            for vertex in self.vertices:
-                # A vertex removed is a vertex with no connection (no faces)
-                if not(vertex.faces):
-                    continue
-                elif len(vertex.faces) < 3:
-                    raise Exception("Valence of vertex of index {} wrong (<3)".format(vertex.index))
-                else:
-                    output_model.add_vertex(vertex.index, vertex.coordinates)
-                    index_vertex_created.append(vertex.index)
+    Utility functions:
+    """
 
-            for index_face in range(len(self.faces)):
-                face = self.faces[index_face]
-                # A face removed is a not visible face
-                if not(face.visible):
-                    continue
-                if not(face.a in index_vertex_created):
-                    raise Exception('Vertex a of index {} not present in face of index {}'.format(face.a, index_face))
-                elif not(face.b in index_vertex_created):
-                    raise Exception('Vertex b of index {} not present in face of index {}'.format(face.b, index_face))
-                elif not(face.c in index_vertex_created):
-                    raise Exception('Vertex c of index {} not present in face of index {}'.format(face.c, index_face))
-                else:
-                    output_model.add_face(index_face, face)
-    """
-    def copy(self):
-        Copy = Model()
+    def clone(self):
+        Clone = Model()
         for vertex in self.vertices:
-            Copy.vertices.append(Vertex(vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible,vertex.color))
+            Clone.vertices.append(vertex.clone())
         for face in self.faces:
-            Copy.faces.append(Face(face.a,face.b,face.c,face.visible,face.state))
-        return Copy
-
-
+            Clone.faces.append(face.clone())
+        return Clone
+    
+    def copy(self,other):
+        self.line = other.line
+        self.vertices = []
+        self.faces = []
+        for vertex in other.vertices:
+            self.vertices.append(vertex.clone())
+        for face in other.faces:
+            self.faces.append(face.clone())
+        return self
+    
+    def presence_of_valence_of(self,valency):
+        for vertex in self.vertices:
+            if len(vertex.faces)==valency:
+                return True
+        return False
 
 
     # Function to save the model into a obja file by doing faces by faces
@@ -483,6 +476,73 @@ class Model:
         for vertex in self.vertices:
             vertex.coloring_vertex(color)
 
+    """
+    Function specific our case:
+    """
+    def find_the_gate(self, vertice_center,current_gate, init_gate = None ,count = 0):
+        """
+        Recursive function to find gates when the front vertex is to be removed.
+
+        Parameters:
+        - vertice_center: The front vertex of the current gate.
+        - current_gate: The current gate being explored.
+        - init_gate: The initial gate used as a reference to stop the recursion.
+
+        """
+        #print("Start find gate, counting: {}".format(count))
+        count += 1
+        # Set the initial gate
+        if init_gate is None:
+            init_gate = [current_gate[1],current_gate[0]] 
+            # inverse in the self.gate all gate orientation as well as the init 
+            # => except of the first gate (init), all gate need to point in the future outside of the batch
+            current_gate = init_gate
+            #print("Init gate initialized: ({},{})".format(init_gate[0].index,init_gate[1].index))
+        #print("Gate_to_face")
+        # find the next_gate
+        gate_face = self.gate_to_face(vertice_center, current_gate[0])
+        #print("new_face: {}".format(gate_face[0]))
+        new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
+        #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
+
+        # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
+        if not(new_gate[0].state == State.Conquered  and new_gate[1].state == State.Conquered)  and init_gate != new_gate : 
+            #print("Not conquered gate")
+            new_gate[0].state = State.Conquered  
+            new_gate[1].state = State.Conquered 
+            self.gate.append(new_gate)
+            self.print_gate_index()
+
+        # Check if the new gate is different from the initial gate to avoid infinite recursion
+        if init_gate != new_gate and count<10 :
+            #print("Different new than init => continue")
+            self.find_the_gate(vertice_center,new_gate, init_gate,count)
+        if count>=10:
+            raise Exception("ça tourne en boucle")
+    def gate_to_face(self, gate_vertex1, gate_vertex2):
+        # Visit all faces from the 1st vertex to see if any face is shared in the right order with the 2nd vertex
+        # Return the face index and the three vertices of the face that have the gate
+        for index_face in gate_vertex1.faces:
+            if self.faces[index_face].a == gate_vertex1.index and self.faces[index_face].b == gate_vertex2.index :
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c]]
+            elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a]]
+            elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b]]        
+        #self.print_faces()
+        #info_previous = self.gate_to_face(gate_vertex2,gate_vertex1)
+        #print("Possible previous face: {}")
+        #self.print_vertices()
+        #self.print_vertices()
+        raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
+    
+    def create_face(self,indices):
+        face = obja.Face.from_array_num(indices)
+        face.state = obja.State.Conquered
+        face.test(self.vertices, self.line)
+        index_face = self.memorize_face(face)
+        return index_face
+
 
 def parse_file(path):
     """
@@ -495,7 +555,7 @@ def parse_file(path):
 
 class Output:
     """
-    The type for a model that outputs as obja.
+    The type for a model that outputs as 
     """
 
     def __init__(self, output, random_color=False):
@@ -562,6 +622,24 @@ class Output:
             self.vertex_mapping[face.a] + 1,
             self.vertex_mapping[face.b] + 1,
             self.vertex_mapping[face.c] + 1
+        ),
+            file=self.output
+        )
+
+    def edit_face_one_vertex(self, index, position, index_vertex):
+        """
+        Changes the indices of a specific vertex (position in {1,2,3}) of the specified face.
+        """
+        print('efv {} {} {}'.format(
+            self.face_mapping[index] + 1,
+            position,
+            self.vertex_mapping[index_vertex] + 1
+        ),
+            file=self.output
+        )
+    def remove_face(self,index):
+        print('df {} '.format(
+            self.face_mapping[index] + 1
         ),
             file=self.output
         )
