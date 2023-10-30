@@ -204,8 +204,12 @@ class Decimater(obja.Model):
             self.copy(save_model)
             print("Choosing first gate")
             cond = False
+            index_init = -1
             while not cond:     #on cherche une face qui est visible
-                index_init = random.randint(0, len(self.faces)-1) # random index for faces
+                index_init += 1 # New version: test one by one each faces to see if one work, less random but test everyone quicker than randomly
+                # Ancient version: #random.randint(0, len(self.faces)-1) # random index for faces
+                if index_init >= len(self.faces):
+                    raise Exception("No faces respect conditions for decimating")
                 faces_init = self.faces[index_init]
                 cond = faces_init.visible
             self.print_single_face(index_init)
@@ -258,8 +262,11 @@ class Decimater(obja.Model):
             print("Start cleaning conquest")
             # cleaning_conquest
             cond = True
-            while cond:
-                index_init = random.randint(0, len(self.faces)-1) # random index for faces
+            index_init = -1
+            while not cond:  # on cherche une face qui est visible
+                index_init += 1  # random.randint(0, len(self.faces)-1) # random index for faces
+                if index_init >= len(self.faces):
+                    raise Exception("No faces respect conditions for cleaning")
                 faces_init = self.faces[index_init]
                 if faces_init.visible and not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
                     cond = False
