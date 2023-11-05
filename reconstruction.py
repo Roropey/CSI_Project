@@ -1,7 +1,12 @@
 import obja
 from collections import deque
 
-
+def limit_value(value,min,max):
+    if value > max:
+        value -= max
+    elif value < min:
+        value += min
+    return value
 class Reconstructer(obja.Model):
 
     def __init__(self,output_name='.\Output_reconstruction.obja'):
@@ -150,9 +155,10 @@ class Reconstructer(obja.Model):
         self.vertices.append(obja.Vertex(len(self.vertices), coordinates, [],obja.State.Conquered))
         self.output.add_vertex(len(self.vertices) - 1, coordinates)
         # Remove all existing faces (on the model and the ouput)
-        for face_index in face_existing:
-            self.remove_face(face_index)
-            self.output.remove_face(face_index)
+        for tuple_index in face_existing:
+            if tuple_index:
+                self.remove_face(tuple_index[0])
+                self.output.remove_face(tuple_index[0])
         # Create the new faces (on the model and the ouput)
         for i in range(len(border_patch)):
             j = i + 1
@@ -161,27 +167,40 @@ class Reconstructer(obja.Model):
             index_face = self.create_face([border_patch[i], border_patch[j], len(self.vertices) - 1])
             self.output.add_face(index_face, self.faces[index_face])
 
-
     def retriangulation(self,output,gate):
         valence = output[0]
         coordinates = output[1]
+        # List of the verticies around in the order of the batch (from gate to before gate in the trigonometric order)
         border_patch = gate.copy()
+        # List of tuple or None: first element of tuple corresponding face index, and second to vertex to be modified (1 for a, 2 for b and 3 for c, 0 for removing (case of valence 6 with face in center))
+        # The None corresponding to face to be created and not modified
+        # The list correspond to the list of existing face and the vertex to be modified, or None in the order of the border patch 
+        # (first tuple for the face shared by border_patch 0 and 1, second tuple for 1 and 2, etc and None for not existing face that required to be created between the two verticies)
+        # Goal: knowing which face(s) to be reused by modifiying the vertex to the created one.
         face_existing = []
         info_face_1 = self.gate_to_face(self.vertices[border_patch[0]],self.vertices[border_patch[1]])
-        face_existing.append(info_face_1[0])
+        face_existing.append((info_face_1[0],info_face_1[4]))
         border_patch.append(info_face_1[3].index)
         self.vertices[border_patch[2]].retriangulation_type = 1
         if valence == 3:
-            pass
+            face_existing.append(None)
+            face_existing.append(None)
         elif valence == 4:
             info_face_2 = []
             if self.vertices[border_patch[0]].retriangulation_type == -1 and self.vertices[border_patch[1]].retriangulation_type == 1:
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[2]], self.vertices[border_patch[1]])
-                face_existing.insert(0,info_face_2[0])
+                # The position given in the 5th position of info_face_2 correspond to the 3rd vertex of the border patch, but we want to keep the face to be connected to
+                # the 2nd and 3rd verticies, so we need to send in the tuple the position of the 4th vertex in the face to be modified, so applied a +1 and ensure to be less than 3
+                # +1 for the left of the gate, -1 for the right of the gate
+                face_existing.append((info_face_2[0],limit_value(info_face_2[4]+1,1,3)))
+                face_existing.append(None)
+                face_existing.append(None)
                 border_patch.insert(2,info_face_2[3].index)
             elif self.vertices[border_patch[0]].retriangulation_type == 1 and self.vertices[border_patch[1]].retriangulation_type == -1:
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[0]],self.vertices[border_patch[2]])
-                face_existing.append(info_face_2[0])
+                # Face shared by border patch 2 and 3 is the same as the face of border patch 1 and 2, required to create a new face, so None
+                face_existing.append(None)
+                face_existing.append((info_face_2[0],limit_value(info_face_2[4]+1,1,3)))
                 border_patch.append(info_face_2[3].index)
             else:
                 print(self.vertices[border_patch[0]].retriangulation_type)
@@ -191,29 +210,35 @@ class Reconstructer(obja.Model):
         elif valence == 5:
             if self.vertices[border_patch[0]].retriangulation_type == 1 and self.vertices[border_patch[1]].retriangulation_type == 1:
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[2]], self.vertices[border_patch[1]])
-                face_existing.insert(0, info_face_2[0])
+                face_existing.append((info_face_2[0],limit_value(info_face_2[4]+1,1,3)))
+                face_existing.append(None)
                 border_patch.insert(2, info_face_2[3].index)
                 self.vertices[border_patch[2]].retriangulation_type = -1
-                info_face_3 = self.gate_to_face(self.vertices[border_patch[2]], self.vertices[border_patch[1]])
-                face_existing.append(info_face_3[0])
+                info_face_3 = self.gate_to_face(self.vertices[border_patch[0]], self.vertices[border_patch[3]])
+                face_existing.append(None)
+                face_existing.append((info_face_3[0],limit_value(info_face_3[4]-1,1,3)))
                 border_patch.append(info_face_3[3].index)
                 self.vertices[border_patch[4]].retriangulation_type = -1
-            elif self.vertices[border_patch[0]].retriangulation_type == 1 and self.vertices[border_patch[1]].retriangulation_type == -1:
+            elif self.vertices[border_patch[0]].retriangulation_type == 1 and self.vertices[border_patch[1]].retriangulation_type == -1:                
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[0]], self.vertices[border_patch[2]])
-                face_existing.append(info_face_2[0])
+                face_existing.append(None)
                 border_patch.append(info_face_2[3].index)
                 self.vertices[info_face_2[3]].retriangulation_type = 1
-                info_face_3 = self.gate_to_face(self.vertices[info_face_2[3]], self.vertices[info_face_1[3]])
-                face_existing.insert(1,info_face_3[0])
+                info_face_3 = self.gate_to_face(info_face_2[3], info_face_1[3])
+                face_existing.append((info_face_3[0],limit_value(info_face_3[4]+1,1,3)))
+                face_existing.append(None)
+                face_existing.append((info_face_2[0],limit_value(info_face_2[4]-1,1,3)))
                 border_patch.insert(3,info_face_3[3].index)
                 self.vertices[info_face_3[3]].retriangulation_type = -1
             elif self.vertices[border_patch[0]].retriangulation_type == -1 and self.vertices[border_patch[1]].retriangulation_type == 1:
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[2]], self.vertices[border_patch[1]])
-                face_existing.insert(0, info_face_2[0])
+                face_existing.append((info_face_2[0],limit_value(info_face_2[4]+1,1,3)))
                 border_patch.insert(2, info_face_2[3].index)
                 self.vertices[info_face_2[3]].retriangulation_type = 1
-                info_face_3 = self.gate_to_face(self.vertices[info_face_1[3]], self.vertices[info_face_2[3]])
-                face_existing.insert(1,info_face_3[0])
+                info_face_3 = self.gate_to_face(info_face_1[3], info_face_2[3])
+                face_existing.append((info_face_3[0],limit_value(info_face_3[4]+1,1,3)))
+                face_existing.append(None)
+                face_existing.append(None)
                 border_patch.insert(3,info_face_3[3].index)
                 self.vertices[info_face_3[3]].retriangulation_type = -1
             else:
@@ -225,9 +250,11 @@ class Reconstructer(obja.Model):
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[0]], self.vertices[border_patch[2]])
                 info_face_3 = self.gate_to_face(info_face_2[3],self.vertices[border_patch[2]])
                 info_face_4 = self.gate_to_face(self.vertices[border_patch[0]],info_face_2[3])
-                face_existing.append(info_face_3[0])
-                face_existing.append(info_face_2[0])
-                face_existing.append(info_face_4[0])
+                face_existing.append(None)
+                face_existing.append((info_face_3[0],limit_value(info_face_3[4]+1,1,3)))
+                face_existing.append(None)
+                face_existing.append((info_face_4[0],limit_value(info_face_4[4]+1,1,3)))
+                face_existing.append(None)
                 border_patch.append(info_face_3[3].index)
                 self.vertices[info_face_3[3].index].retriangulation_type = -1
                 border_patch.append(info_face_2[3].index)
@@ -238,9 +265,11 @@ class Reconstructer(obja.Model):
                 info_face_2 = self.gate_to_face(self.vertices[border_patch[2]], self.vertices[border_patch[1]])
                 info_face_3 = self.gate_to_face(info_face_2[3], self.vertices[border_patch[1]])
                 info_face_4 = self.gate_to_face(self.vertices[border_patch[2]], info_face_2[3])
-                face_existing.insert(0, info_face_3[0])
-                face_existing.insert(1, info_face_2[0])
-                face_existing.insert(2, info_face_4[0])
+                face_existing.append((info_face_3[0],limit_value(info_face_3[4]+1,1,3)))
+                face_existing.append(None)
+                face_existing.append((info_face_4[0],limit_value(info_face_4[4]+1,1,3)))
+                face_existing.append(None)
+                face_existing.append(None)
                 border_patch.insert(2,info_face_3[3].index)
                 self.vertices[info_face_3[3].index].retriangulation_type = -1
                 border_patch.insert(3,info_face_2[3].index)

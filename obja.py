@@ -521,14 +521,14 @@ class Model:
             raise Exception("ça tourne en boucle")
     def gate_to_face(self, gate_vertex1, gate_vertex2):
         # Visit all faces from the 1st vertex to see if any face is shared in the right order with the 2nd vertex
-        # Return the face index and the three vertices of the face that have the gate
+        # Return the face index and the three vertices of the face that have the gate, and a value indicating the position of the third vertex (1 for a, 2 for b and 3 for c)
         for index_face in gate_vertex1.faces:
             if self.faces[index_face].a == gate_vertex1.index and self.faces[index_face].b == gate_vertex2.index :
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c]]
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c],3]
             elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a]]
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a],1]
             elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b]]        
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]        
         #self.print_faces()
         #info_previous = self.gate_to_face(gate_vertex2,gate_vertex1)
         #print("Possible previous face: {}")
