@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import random
 from collections import deque
+from reconstruction import Reconstructer
 
 
 class Vertex_removed():
@@ -43,21 +44,10 @@ class Decimater(obja.Model):
             print("({},{}) ".format(gate[0].index,gate[1].index),end="")
         print()
     
-    def set_everything_to_free(self):
-        for face in self.faces:
-            if face.visible:
-                face.state = obja.State.Free
-        for vertex in self.vertices:
-            if len(vertex.faces) > 0:
-                vertex.state = obja.State.Free
-            
-    def set_everything_to_zeros(self):
-        for vertex in self.vertices:
-            if len(vertex.faces) > 0:
-                vertex.retriangulation_type = 0        
+         
     
     def decimating_conquest(self):
-        print("Start function decimating")
+        #print("Start function decimating")
         c_gate = self.gate.popleft()
         
         
@@ -123,18 +113,19 @@ class Decimater(obja.Model):
 
   
         c_gate = self.gate.popleft()
-
+        #print("gate 1: {}, gate 2: {}".format(c_gate[0].index,c_gate[1].index))
         # Find information about the front face
         front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
+        #self.print_single_face(front_face_information[0])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
         #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
-        if front_face == obja.State.Conquered or front_face == obja.State.To_be_removed:
+        if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
             return None
 
 
-        elif len(front_vertex.faces) == 3 :
+        elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free   :
 
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
@@ -170,7 +161,7 @@ class Decimater(obja.Model):
 
             return Vertex_removed(front_vertex,c_gate)
 
-        elif front_vertex.state == obja.State.Free or front_vertex == obja.State.Conquered :
+        elif front_vertex.state == obja.State.Free or front_vertex.state == obja.State.Conquered :
             
             # Mark the front face as conquered
             front_face.state = obja.State.Conquered
@@ -186,166 +177,10 @@ class Decimater(obja.Model):
 
             return "Null_patch"
 
-                
-
-    
-
-
-
-    def decimateAB(self):
-        # inititialisation 
-               
-        output_val_A = []
-        output_val_B = []
-        init_gate_decimating = []
-        save_model = self.clone()
-        cond_do_decimating = True
-        while cond_do_decimating: 
-            self.copy(save_model)
-            print("Choosing first gate")
-            cond = False
-            index_init = -1
-            while not cond:     #on cherche une face qui est visible
-                index_init += 1 # New version: test one by one each faces to see if one work, less random but test everyone quicker than randomly
-                # Ancient version: #random.randint(0, len(self.faces)-1) # random index for faces
-                if index_init >= len(self.faces):
-                    raise Exception("No faces respect conditions for decimating")
-                faces_init = self.faces[index_init]
-                cond = faces_init.visible
-            self.print_single_face(index_init)
-            self.vertices[faces_init.a].retriangulation_type = 1
-            self.vertices[faces_init.b].retriangulation_type = -1
-            init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-            self.gate.append(init_gate_decimating)
-            #self.print_faces()
-            #self.print_vertices()
-            #print('taille de la queue {}'.format(len(self.gate)))
-            i=0
-            # decimating_conquest
-            while len(self.gate) > 0 :
-                print("decimating_conquest")
-                c_gate = self.gate[0]
-                vertex_remove = self.decimating_conquest()
-                #print("\tanalyzing result decimating")
-                if vertex_remove == "Null_patch":
-                    output_val_A.append("Null_patch")
-                
-                elif vertex_remove :
-                    # Clone = self.clone()
-                    # Clone.coloring_vertex_all_similar((0.5,0.5,0.5))
-                    # Clone.vertices[c_gate[0].index].coloring_vertex((1,0,0))
-                    # Clone.vertices[c_gate[1].index].coloring_vertex((1,0,0))
-                    # Clone.vertices[vertex_remove.index].coloring_vertex((0,0,1))
-                    # Clone.save_with_obja_f_by_f(f'Results_tests/before_retriangulation_{i}.obj')
-
-                    #output_val_A.append(len(vertex_remove.faces))
-                    output_val_A.append([vertex_remove.valence,vertex_remove.index])
-                    self.retriangulation(vertex_remove)
-                    # self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
-                    # Clone = self.clone()
-                    # Clone.coloring_vertex_based_type_retriang()
-                    # Clone.save_with_obja_f_by_f(f'Results_tests/after_retriangulation_type_colored_{i}.obj')
-                    # i += 1
-            #print('taille de la queue {}'.format(len(self.gate)))
-            cond_do_decimating = self.presence_of_valence_of(2)
-            
-        
-        self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
-        self.set_everything_to_free()
-        #self.set_everything_to_zeros()
-        
-        save_model = self.clone()
-        cond_do_cleaning = True
-        while cond_do_cleaning:
-            output_val_B = []
-            self.copy(save_model)
-            print("Start cleaning conquest")
-            # cleaning_conquest
-            cond = True
-            index_init = -1
-            while not cond:  # on cherche une face qui est visible
-                index_init += 1  # random.randint(0, len(self.faces)-1) # random index for faces
-                if index_init >= len(self.faces):
-                    raise Exception("No faces respect conditions for cleaning")
-                faces_init = self.faces[index_init]
-                if faces_init.visible and not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
-                    cond = False
-            
-            init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-            self.gate.append(init_gate_cleaning)
-
-            
-            self.print_single_face(index_init)
-            
-            
-            while len(self.gate) > 0 :
-            
-                vertex_remove = self.cleaning_conquest()
-                #print("Cleaning passed")
-                if vertex_remove == "Null_patch":
-                    #print("Is a null patch")
-                    output_val_B.append("Null_patch")
-                
-                elif vertex_remove :
-                    #print("Need to be removed")
-                    output_val_B.append([vertex_remove.valence,vertex_remove.index])
-                    self.retriangulation_4_cleaning_conquest(vertex_remove)
-            print(index_init)
-            cond_do_cleaning = self.presence_of_valence_of(3)
-        self.print_count_valencies()
-        self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
-        decimating_output = Decimating_output(init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
-        return decimating_output
-    
-
-    def count_point(self):
-        count = 0
-        for vertex in self.vertices:
-            if vertex.visible:
-                count += 1
-        return count
-        
-
-    def decimate(self,nb_point_end = 15):
-        count_iteration = 0
-        count_point = self.count_point()
-        print(count_point)
-        decimating_output = []
-        while count_point > nb_point_end:
-            count_iteration += 1
-            print(f"{count_iteration}ieme decimation")
-            decimating_output.append(self.decimateAB())
-            self.save_with_obja_f_by_f(f'Results_tests/Decimate{count_iteration}.obj')
-            self.set_everything_to_free()
-            self.set_everything_to_zeros()
-            count_point = self.count_point()
-            print(count_point)
-        return decimating_output
-
-    
-            
-    
-
-
-    def create_if(self,list_faces):
-        # Function to memorize faces if not existing already (in both direction (ABC and ACB for example))
-        # list_faces: list of Face object already created
-        can_create = True
-        for face_possible in list_faces:
-            points = [face_possible.a,face_possible.b,face_possible.c]
-            for face in self.faces:
-                if face.visible and (face.a in points and face.b in points and face.c in points):
-                    can_create = False
-        if can_create:
-            for face in list_faces:
-                face.state = obja.State.Conquered
-                face.test(self.vertices, self.line)
-                self.memorize_face(face)
-        return can_create
 
 
     def retriangulation_4_cleaning_conquest(self,vertex_to_be_removed):
-        print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
+        #print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
         border_patch = vertex_to_be_removed.gate.copy() # List of all vertices around the vertex to be removed
         vertex_infos = self.vertices[vertex_to_be_removed.index]    # A variable to access directly info to avoid too much code
         while vertex_infos.faces:   # While there is faces to be removed from the "vertex to be removed", we search them
@@ -386,7 +221,7 @@ class Decimater(obja.Model):
            
  
     def retriangulation(self,vertex_to_be_removed):
-        print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
+        #print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
         self.save_with_obja_f_by_f('Results_tests/test1.obj')
         #self.print_single_vertex(vertex_to_be_removed.index)
         #for face in self.vertices[vertex_to_be_removed.index].faces:
@@ -438,7 +273,7 @@ class Decimater(obja.Model):
         
        
         if vertex_to_be_removed.valence == 3:
-            print("Valence of 3")
+            #print("Valence of 3")
             # Assigning retriangulation types
             if (self.vertices[border_patch[0]].retriangulation_type==1) and (self.vertices[border_patch[1]].retriangulation_type==-1):
                 self.vertices[border_patch[2]].retriangulation_type=1
@@ -449,14 +284,14 @@ class Decimater(obja.Model):
             elif (self.vertices[border_patch[0]].retriangulation_type==-1) and (self.vertices[border_patch[1]].retriangulation_type==-1):
                 self.vertices[border_patch[2]].retriangulation_type=1
             else : 
-                print(self.vertices[border_patch[0]].retriangulation_type)
-                print(self.vertices[border_patch[1]].retriangulation_type)
+                #print(self.vertices[border_patch[0]].retriangulation_type)
+                #print(self.vertices[border_patch[1]].retriangulation_type)
                 raise Exception("Unexpected retriangulation_type for gate vertices")  
             # Creating faces
             self.create_face([self.vertices[border_patch[0]].index,self.vertices[border_patch[1]].index,self.vertices[border_patch[2]].index])
             
         elif vertex_to_be_removed.valence == 4:
-            print("Valence of 4")
+            #print("Valence of 4")
             if (self.vertices[border_patch[0]].retriangulation_type==1) and (self.vertices[border_patch[1]].retriangulation_type==-1):
                 self.vertices[border_patch[2]].retriangulation_type=1
                 self.vertices[border_patch[3]].retriangulation_type=-1
@@ -488,7 +323,7 @@ class Decimater(obja.Model):
             else : raise Exception("Unexpected retriangulation_type for gate vertices")    
 
         elif vertex_to_be_removed.valence == 5:
-            print("Valence of 5")
+            #print("Valence of 5")
             if (self.vertices[border_patch[0]].retriangulation_type==1) and (self.vertices[border_patch[1]].retriangulation_type==-1):
                 self.vertices[border_patch[2]].retriangulation_type=1
                 self.vertices[border_patch[3]].retriangulation_type=-1
@@ -526,11 +361,11 @@ class Decimater(obja.Model):
                 self.create_face([self.vertices[border_patch[2]].index,self.vertices[border_patch[3]].index,self.vertices[border_patch[4]].index])
 
             else : 
-                print("Gate retriangulation type: {} {}".format(self.vertices[border_patch[0]].retriangulation_type, self.vertices[border_patch[1]].retriangulation_type))
+                #print("Gate retriangulation type: {} {}".format(self.vertices[border_patch[0]].retriangulation_type, self.vertices[border_patch[1]].retriangulation_type))
                 raise Exception("Unexpected retriangulation_type for gate vertices") 
             
         elif vertex_to_be_removed.valence == 6:
-            print("Valence of 6")
+            #print("Valence of 6")
             if (self.vertices[border_patch[0]].retriangulation_type==1) and (self.vertices[border_patch[1]].retriangulation_type==-1):
                 self.vertices[border_patch[2]].retriangulation_type=1
                 self.vertices[border_patch[3]].retriangulation_type=-1
@@ -574,11 +409,145 @@ class Decimater(obja.Model):
                 self.create_face([self.vertices[border_patch[2]].index,self.vertices[border_patch[3]].index,self.vertices[border_patch[4]].index])
             else : raise Exception("Unexpected retriangulation_type for gate vertices")
         else:
-            print()
+            #print()
             raise Exception("Unexpected valence: {} (<3 or >6)".format(vertex_to_be_removed.valence))  
         
         vertex_infos.visible = False
         
+
+
+    def decimateAB(self):
+        # inititialisation 
+               
+        output_val_A = []
+        output_val_B = []
+        init_gate_decimating = []
+        save_model = self.clone()
+        
+        index_init = -1
+        cond_do_decimating = True
+        self.print_single_vertex(0)
+        while cond_do_decimating: 
+            self.copy(save_model)
+            print("Choosing first gate")
+            cond = False
+            while not cond:     #on cherche une face qui est visible
+                index_init += 1 # New version: test one by one each faces to see if one work, less random but test everyone quicker than randomly
+                # Ancient version: #random.randint(0, len(self.faces)-1) # random index for faces
+                if index_init >= len(self.faces):
+                    raise Exception("No faces respect conditions for decimating")
+                faces_init = self.faces[index_init]
+                cond = faces_init.visible
+            #self.print_single_face(index_init)
+            self.vertices[faces_init.a].retriangulation_type = 1
+            self.vertices[faces_init.b].retriangulation_type = -1
+            init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+            self.gate.append(init_gate_decimating)
+            #self.print_faces()
+            #self.print_vertices()
+            #print('taille de la queue {}'.format(len(self.gate)))
+            i=0
+            # decimating_conquest
+            while len(self.gate) > 0 :
+                print("decimating_conquest")
+                self.print_single_vertex(0)
+                c_gate = self.gate[0]
+                vertex_remove = self.decimating_conquest()
+                #print("\tanalyzing result decimating")
+                if vertex_remove == "Null_patch":
+                    output_val_A.append("Null_patch")
+                
+                elif vertex_remove :
+                    # Clone = self.clone()
+                    # Clone.coloring_vertex_all_similar((0.5,0.5,0.5))
+                    # Clone.vertices[c_gate[0].index].coloring_vertex((1,0,0))
+                    # Clone.vertices[c_gate[1].index].coloring_vertex((1,0,0))
+                    # Clone.vertices[vertex_remove.index].coloring_vertex((0,0,1))
+                    # Clone.save_with_obja_f_by_f(f'Results_tests/before_retriangulation_{i}.obj')
+
+                    #output_val_A.append(len(vertex_remove.faces))
+                    output_val_A.append([vertex_remove.valence,vertex_remove.index])
+                    self.retriangulation(vertex_remove)
+                    # self.save_with_obja_f_by_f('Results_tests/after_retriangulation.obj')
+                    # Clone = self.clone()
+                    # Clone.coloring_vertex_based_type_retriang()
+                    # Clone.save_with_obja_f_by_f(f'Results_tests/after_retriangulation_type_colored_{i}.obj')
+                    # i += 1
+            #print('taille de la queue {}'.format(len(self.gate)))
+            cond_do_decimating = self.presence_of_valence_of(2)
+            
+        
+        self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
+        self.set_everything_to_free()
+        #self.set_everything_to_zeros()
+        save_model = self.clone()
+        #cond_do_cleaning = True
+        index_init = -1
+        #while cond_do_cleaning:
+        output_val_B = []
+        self.copy(save_model)
+        print("Start cleaning conquest")
+            # cleaning_conquest
+        cond = False
+        while not cond:  # on cherche une face qui est visible
+            index_init += 1  # random.randint(0, len(self.faces)-1) # random index for faces
+            if index_init >= len(self.faces):
+                raise Exception("No faces respect conditions for cleaning (index_init: {})".format(index_init))
+            faces_init = self.faces[index_init]
+            if faces_init.visible and not(len(self.vertices[faces_init.a].faces) == 3 or len(self.vertices[faces_init.b].faces) == 3):
+                cond = True
+        init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+        self.gate.append(init_gate_cleaning)
+
+            
+            #self.print_single_face(index_init)
+            
+            
+        while len(self.gate) > 0 :
+            
+            vertex_remove = self.cleaning_conquest()
+                #print("Cleaning passed")
+            if vertex_remove == "Null_patch":
+                    #print("Is a null patch")
+                output_val_B.append("Null_patch")
+                
+            elif vertex_remove :
+                    #print("Need to be removed")
+                    #print("Vertex to be removed {}".format(vertex_remove.index))
+                output_val_B.append([vertex_remove.valence,vertex_remove.index])
+                self.retriangulation_4_cleaning_conquest(vertex_remove)
+        print(index_init)
+        #cond_do_cleaning = self.presence_of_valence_of(3)
+        self.print_count_valencies()
+        self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
+        decimating_output = Decimating_output(init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
+        return decimating_output
+    
+
+    def count_point(self):
+        count = 0
+        for vertex in self.vertices:
+            if vertex.visible:
+                count += 1
+        return count
+        
+
+    def decimate(self,nb_point_end = 15):
+        count_iteration = 0
+        count_point = self.count_point()
+        print(count_point)
+        decimating_output = []
+        while count_point > nb_point_end:
+            count_iteration += 1
+            print(f"{count_iteration}ieme decimation")
+            decimating_output.append(self.decimateAB())
+            self.save_with_obja_f_by_f(f'Results_tests/Decimate{count_iteration}.obj')
+            self.set_everything_to_free()
+            self.set_everything_to_zeros()
+            count_point = self.count_point()
+            print(count_point)
+        return decimating_output
+
 
 
 def main():
@@ -590,10 +559,49 @@ def main():
     model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     # model.complete_model()
     
-    model.decimateAB()
-    #model.decimate(15)
+    #model.decimateAB()
+    
     model.save_with_obja_f_by_f('Results_tests/DecimateAB_sphere_4567.obj')
+
+
+    decimating_output = model.decimate(15)
+    #model_copy = model.clone()
+    reco = Reconstructer()
+    reco.copy(model)
+    reconstruction = reco.reconstruction(decimating_output)
 
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def create_if(self,list_faces):
+#         # Function to memorize faces if not existing already (in both direction (ABC and ACB for example))
+#         # list_faces: list of Face object already created
+#         can_create = True
+#         for face_possible in list_faces:
+#             points = [face_possible.a,face_possible.b,face_possible.c]
+#             for face in self.faces:
+#                 if face.visible and (face.a in points and face.b in points and face.c in points):
+#                     can_create = False
+#         if can_create:
+#             for face in list_faces:
+#                 face.state = obja.State.Conquered
+#                 face.test(self.vertices, self.line)
+#                 self.memorize_face(face)
+#         return can_create

@@ -14,8 +14,9 @@ class Reconstructer(obja.Model):
         self.deleted_faces = set()
         self.gate = deque()
         self.list_removed = []
-        with open(output_name, 'w') as output:
-            self.output = obja.Output(output, random_color=False)
+        #with as output:
+        self.file = open(output_name, 'w')
+        self.output = obja.Output(self.file , random_color=False)
 
 
     def decimating_reconquest(self,output_val):
@@ -150,10 +151,10 @@ class Reconstructer(obja.Model):
 
   
 
-    def recreate_faces(self,coordinates,border_patch,face_existing):
+    def recreate_faces(self,index_to_added,border_patch,face_existing):
         # Create the vertex (on the model and the ouput)
-        self.vertices.append(obja.Vertex(len(self.vertices), coordinates, [],obja.State.Conquered))
-        self.output.add_vertex(len(self.vertices) - 1, coordinates)
+        vertex_to_be_added = self.vertices[index_to_added]
+        self.output.add_vertex(vertex_to_be_added.index, vertex_to_be_added.coordinates)
         # Remove all existing faces (on the model and the ouput)
         for tuple_index in face_existing:
             if tuple_index:
@@ -164,14 +165,15 @@ class Reconstructer(obja.Model):
             j = i + 1
             if j >= len(border_patch):
                 j = j - len(border_patch)
-            index_face = self.create_face([border_patch[i], border_patch[j], len(self.vertices) - 1])
+            index_face = self.create_face([border_patch[i], border_patch[j], vertex_to_be_added.index])
             self.output.add_face(index_face, self.faces[index_face])
 
     def retriangulation(self,output,gate):
         valence = output[0]
-        coordinates = output[1]
+        print("Valence {}".format(valence))
+        index_to_added = output[1]
         # List of the verticies around in the order of the batch (from gate to before gate in the trigonometric order)
-        border_patch = gate.copy()
+        border_patch = [gate[0].index,gate[1].index] #gate.copy()
         # List of tuple or None: first element of tuple corresponding face index, and second to vertex to be modified (1 for a, 2 for b and 3 for c, 0 for removing (case of valence 6 with face in center))
         # The None corresponding to face to be created and not modified
         # The list correspond to the list of existing face and the vertex to be modified, or None in the order of the border patch 
@@ -279,9 +281,61 @@ class Reconstructer(obja.Model):
 
 
 
-        self.recreate_faces(coordinates,border_patch,face_existing)
+        self.recreate_faces(index_to_added,border_patch,face_existing)
+
+    def init_mode(self):
+        index_vertex_created = []
+        for index_face in range(len(self.faces)):
+            face = self.faces[index_face]
+            if not(face.visible):
+                continue        
+            if not(face.a in index_vertex_created):
+                if self.vertices[face.a].color:
+                    self.output.add_colored_vertex(face.a, self.vertices[face.a].coordinates, self.vertices[face.a].color)
+                else:
+                    self.output.add_vertex(face.a, self.vertices[face.a].coordinates)
+                index_vertex_created.append(face.a)
+            if not(face.b in index_vertex_created):
+                if self.vertices[face.b].color:
+                    self.output.add_colored_vertex(face.b, self.vertices[face.b].coordinates, self.vertices[face.b].color)
+                else:
+                    self.output.add_vertex(face.b, self.vertices[face.b].coordinates)
+                index_vertex_created.append(face.b)
+            if not(face.c in index_vertex_created):
+                if self.vertices[face.c].color:
+                    self.output.add_colored_vertex(face.c, self.vertices[face.c].coordinates, self.vertices[face.c].color)
+                else:
+                    self.output.add_vertex(face.c, self.vertices[face.c].coordinates)
+                index_vertex_created.append(face.c)
+            self.output.add_face(index_face, face)
 
 
     
+    def reconstruction(self,decimating_output):
+        nb_it = len(decimating_output)
+        decimating_output.reverse()
+        self.init_mode()
+        for i in range (nb_it):
+
+            decimating_output_AB = decimating_output[i]
+            output_B = decimating_output_AB.output_val_B
+            output_A = decimating_output_AB.output_val_A
+
+            self.gate[0].retriangulation_type = 1
+            self.gate[1].retriangulation_type = -1
+
+            self.gate.append(decimating_output_AB.init_gate_cleaning)
+            self.cleaning_reconquest(output_B)
+
+            self.set_everything_to_free()
+            self.set_everything_to_zeros()
+
+            self.gate[0].retriangulation_type = 1
+            self.gate[1].retriangulation_type = -1
+            
+            self.gate.append(decimating_output_AB.init_gate_decimating)
+            self.decimating_reconquest(output_A)
+            
+        return None
 
                 

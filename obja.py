@@ -217,34 +217,19 @@ class Model:
         self.vertices[face.c].faces.append(index_face)
         return index_face
         
-    def memorize__new_face(self,face):
-        self.faces.append(face)
-        index_face = len(self.faces) - 1
-        self.vertices[face.a].faces.append(index_face)
-        self.vertices[face.b].faces.append(index_face)
-        self.vertices[face.c].faces.append(index_face)
-        if len(self.vertices[face.a].faces) < 3:
-            self.print_vertices()
-            self.print_single_vertex(face.a)
-            self.print_single_vertex(face.b)
-            self.print_single_vertex(face.c)
-            self.print_single_face(index_face)
-            #raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
-        elif len(self.vertices[face.b].faces) < 3:
-            self.print_vertices()
-            self.print_single_vertex(face.a)
-            self.print_single_vertex(face.b)
-            self.print_single_vertex(face.c)
-            self.print_single_face(index_face)
-            #raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
-        elif len(self.vertices[face.c].faces) < 3:
-            self.print_vertices()
-            self.print_single_vertex(face.a)
-            self.print_single_vertex(face.b)
-            self.print_single_vertex(face.c)
-            self.print_single_face(index_face)
-            #raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
-                
+    
+    def set_everything_to_free(self):
+        for face in self.faces:
+            if face.visible:
+                face.state = State.Free
+        for vertex in self.vertices:
+            if len(vertex.faces) > 0:
+                vertex.state = State.Free
+            
+    def set_everything_to_zeros(self):
+        for vertex in self.vertices:
+            if len(vertex.faces) > 0:
+                vertex.retriangulation_type = 0   
         
 
     def get_vertex_from_string(self, string):
@@ -430,7 +415,7 @@ class Model:
     def print_faces(self):
         for index_face in range(len(self.faces)):
             face = self.faces[index_face]
-            print("Face of index {}, composed of:\n\t- a: {}\n\t- b: {}\n\t- c: {}\n\t- visibility: {}\n\t- state: {}".format(index_face,face.a,face.b,face.c,face.visible,face.state))
+            print("Face of index {}, composed of:\n\t- a: {} of valence {}\n\t- b: {} of valence {}\n\t- c: {} of valence {}\n\t- visibility: {}\n\t- state: {}".format(index_face,face.a,len(self.vertices[face.a].faces),face.b,len(self.vertices[face.b].faces),face.c,len(self.vertices[face.c].faces),face.visible,face.state))
             
     def print_vertices(self):
         for index_vertex in range(len(self.vertices)):
@@ -439,21 +424,25 @@ class Model:
 
     def print_single_face(self,index):
         face = self.faces[index]
-        print("Face of index {}, composed of:\n\t- a: {}\n\t- b: {}\n\t- c: {}\n\t- visibility: {}\n\t- state: {}".format(face,face.a,face.b,face.c,face.visible,face.state))
+        print("Face of index {}, composed of:\n\t- a: {}\n\t- b: {}\n\t- c: {}\n\t- visibility: {}\n\t- state: {}".format(index,face.a,face.b,face.c,face.visible,face.state))
     
     def print_single_vertex(self,index):
         vertex = self.vertices[index]
         print("Vertex :\n\t- index in model: {}\n\t- index in vertex: {}\n\t- coordinates: {}\n\t- faces: {}\n\t- state: {}\n\t- retriangulation type: {}\n\t- visibility: {}".format(index,vertex.index,vertex.coordinates,vertex.faces,vertex.state,vertex.retriangulation_type,vertex.visible))
 
-    def print_count_valencies(self):
+    def print_count_valencies(self,Specify=None):
         counts = []
         for vertex in self.vertices:
             while len(counts) <= len(vertex.faces):
                 counts.append(0)
             counts[len(vertex.faces)] += 1
-        print("Count of vertex per valencies:")
-        for valence in range(len(counts)):
-            print("\t- {}: {}".format(valence,counts[valence]))
+        if Specify:
+            print("Count of vertex for valence {}: {}".format(Specify,counts[Specify]))
+        else:
+            print("Count of vertex per valencies:")
+            for valence in range(len(counts)):
+                print("\t- {}: {}".format(valence,counts[valence]))
+        
 
     def coloring_vertex_based_type_retriang(self):
         colors = [(0,0,1),(0,1,0),(1,0,0)] # type_retriangulation + 1 = index => [-,0,+]
@@ -511,7 +500,7 @@ class Model:
             new_gate[0].state = State.Conquered  
             new_gate[1].state = State.Conquered 
             self.gate.append(new_gate)
-            self.print_gate_index()
+            #self.print_gate_index()
 
         # Check if the new gate is different from the initial gate to avoid infinite recursion
         if init_gate != new_gate and count<10 :
@@ -528,17 +517,14 @@ class Model:
             elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a],1]
             elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]        
-        #self.print_faces()
-        #info_previous = self.gate_to_face(gate_vertex2,gate_vertex1)
-        #print("Possible previous face: {}")
-        #self.print_vertices()
-        #self.print_vertices()
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]  
+        self.print_single_vertex(gate_vertex1.index)
+        self.print_single_vertex(gate_vertex2.index)
         raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
     
     def create_face(self,indices):
-        face = obja.Face.from_array_num(indices)
-        face.state = obja.State.Conquered
+        face = Face.from_array_num(indices)
+        face.state = State.Conquered
         face.test(self.vertices, self.line)
         index_face = self.memorize_face(face)
         return index_face
