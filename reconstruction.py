@@ -313,6 +313,7 @@ class Reconstructer(obja.Model):
     
     def reconstruction(self,decimating_output):
         nb_it = len(decimating_output)
+        print(nb_it)
         decimating_output.reverse()
         self.init_mode()
         for i in range (nb_it):
@@ -321,17 +322,19 @@ class Reconstructer(obja.Model):
             output_B = decimating_output_AB.output_val_B
             output_A = decimating_output_AB.output_val_A
 
-            self.gate[0].retriangulation_type = 1
-            self.gate[1].retriangulation_type = -1
+            
 
             self.gate.append(decimating_output_AB.init_gate_cleaning)
+            self.gate[0][0].retriangulation_type = 1
+            self.gate[0][1].retriangulation_type = -1
+
             self.cleaning_reconquest(output_B)
 
             self.set_everything_to_free()
             self.set_everything_to_zeros()
 
-            self.gate[0].retriangulation_type = 1
-            self.gate[1].retriangulation_type = -1
+            self.gate[0][0].retriangulation_type = 1
+            self.gate[0][1].retriangulation_type = -1
             
             self.gate.append(decimating_output_AB.init_gate_decimating)
             self.decimating_reconquest(output_A)
