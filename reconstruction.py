@@ -1,12 +1,7 @@
 import obja
 from collections import deque
+from utility import limit_value
 
-def limit_value(value,min,max):
-    if value > max:
-        value -= max
-    elif value < min:
-        value += min
-    return value
 class Reconstructer(obja.Model):
 
     def __init__(self,output_name='.\Output_reconstruction.obja'):
