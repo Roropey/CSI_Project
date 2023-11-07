@@ -479,7 +479,9 @@ class Decimater(obja.Model):
                    
                     output_val_A.append([vertex_remove.valence,vertex_remove.index])
                     self.retriangulation(vertex_remove)
-             
+                if self.presence_of_valence_of(2):
+                    print("Break")
+                    break
             cond_do_decimating = self.presence_of_valence_of(2)
         print()
         
@@ -540,6 +542,10 @@ class Decimater(obja.Model):
                         #print("Vertex to be removed {}".format(vertex_remove.index))
                     output_val_B.append([vertex_remove.valence,vertex_remove.index])
                     self.retriangulation_4_cleaning_conquest(vertex_remove)
+                if self.presence_of_valence_of(2):
+                    print("Break")
+                    break
+
             print("\nind_f: {}".format(ind_f))
             cond_do_cleaning = self.presence_of_valence_of(2)
         self.print_count_valencies()
@@ -581,13 +587,14 @@ def main():
     np.seterr(invalid = 'raise')
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
-    model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
+    #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
+    #model.parse_file('example/suzanne.obj') # Doesn't work because suzanne has valence of 2 since origin
     # model.complete_model()
-    
-    #model.decimateAB()
+    #model.decimateAB()d
+    model.print_count_valencies()
     decimating_output = model.decimate(15)
     
-    model.save_with_obja_f_by_f('Results_tests/DecimateAB_sphere_56.obj')
+    model.save_with_obja_f_by_f('Results_tests/DecimateAB_sphere4567.obj')
 
 
     reco = Reconstructer()

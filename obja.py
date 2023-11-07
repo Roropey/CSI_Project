@@ -182,6 +182,9 @@ class Vertex:
         if len(color) != 3:
             raise Exception("Wrong input for coloring")
         self.color = [color[0],color[1],color[2]]
+    
+    def equality(self,other):
+        return self.index == other.index
 
 class Model:
     """
@@ -486,8 +489,7 @@ class Model:
             # inverse in the self.gate all gate orientation as well as the init 
             # => except of the first gate (init), all gate need to point in the future outside of the batch
             current_gate = init_gate
-            #print("Init gate initialized: ({},{})".format(init_gate[0].index,init_gate[1].index))
-        #print("Gate_to_face")
+        
         # find the next_gate
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
         #print("new_face: {}".format(gate_face[0]))
@@ -503,7 +505,7 @@ class Model:
             #self.print_gate_index()
 
         # Check if the new gate is different from the initial gate to avoid infinite recursion
-        if init_gate != new_gate and count<10 :
+        if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<10 :
             #print("Different new than init => continue")
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
         if count>=10:
@@ -517,9 +519,18 @@ class Model:
             elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a],1]
             elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]  
+                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]
+
         self.print_single_vertex(gate_vertex1.index)
         self.print_single_vertex(gate_vertex2.index)
+
+        # self.print_single_face(528)
+        self.print_count_valencies()
+        # self.coloring_vertex_all_similar([0.5,0.5,0.5])
+        # self.vertices[264].coloring_vertex([0,0,1])
+        # self.vertices[262].coloring_vertex([0,1,0])
+        # self.vertices[250].coloring_vertex([1,0,0])
+        # self.save_with_obja_f_by_f('Results_tests/test_suzanne.obj')
         raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
     
     def create_face(self,indices):
