@@ -223,16 +223,13 @@ class Model:
     
     def set_everything_to_free(self):
         for face in self.faces:
-            if face.visible:
-                face.state = State.Free
-        for vertex in self.vertices:
-            if len(vertex.faces) > 0:
-                vertex.state = State.Free
+            face.state = State.Free
+        for vertex in self.vertices:            
+            vertex.state = State.Free
             
     def set_everything_to_zeros(self):
         for vertex in self.vertices:
-            if len(vertex.faces) > 0:
-                vertex.retriangulation_type = 0   
+            vertex.retriangulation_type = 0   
         
 
     def get_vertex_from_string(self, string):
@@ -463,6 +460,9 @@ class Model:
         colors = color_generator.generate_N_RGB_colors(len(counts))
         for vertex in self.vertices:
             vertex.coloring_vertex(colors[len(vertex.faces)])
+    def coloring_list_vertices(self,list_index,color):
+        for index in list_index:
+            self.vertices[index].coloring_vertex(color)
 
     def coloring_vertex_all_similar(self,color):
         for vertex in self.vertices:

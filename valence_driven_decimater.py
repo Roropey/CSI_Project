@@ -39,6 +39,7 @@ class Decimater(obja.Model):
         self.gate = deque()
         self.list_removed = []
         self.random_seed = 0
+        self.count = 0
 
     def print_gate_index(self):
         print("List index vertices on gates: ", end="")
@@ -123,6 +124,13 @@ class Decimater(obja.Model):
         #self.print_single_face(front_face_information[0])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
+        
+        self.coloring_vertex_all_similar([0.5,0.5,0.5])
+        c_gate[0].coloring_vertex([0,1,0])
+        c_gate[1].coloring_vertex([0,0,1])
+        front_face_information[3].coloring_vertex([1,0,0])        
+        self.save_with_obja_f_by_f('Results_tests/gate_cleaning_conquest_{}.obj'.format(self.count))
+        self.count += 1
         #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
@@ -162,7 +170,6 @@ class Decimater(obja.Model):
                 self.faces[f[0]].state = obja.State.Conquered
             
             front_vertex.state = obja.State.To_be_removed
-
             return Vertex_removed(front_vertex,c_gate)
 
         elif front_vertex.state == obja.State.Free or front_vertex.state == obja.State.Conquered :
@@ -531,6 +538,7 @@ class Decimater(obja.Model):
             while len(self.gate) > 0 :
                 print("cleaning_conquest ",end="")
                 
+                
                 vertex_remove = self.cleaning_conquest()
                     #print("Cleaning passed")
                 if vertex_remove == "Null_patch":
@@ -541,7 +549,9 @@ class Decimater(obja.Model):
                         #print("Need to be removed")
                         #print("Vertex to be removed {}".format(vertex_remove.index))
                     output_val_B.append([vertex_remove.valence,vertex_remove.index])
+                    self.save_with_obja_f_by_f('Results_tests/before_cleaning_conquest_{}.obj'.format(self.count))
                     self.retriangulation_4_cleaning_conquest(vertex_remove)
+
                 if self.presence_of_valence_of(2):
                     print("Break")
                     break
@@ -587,14 +597,15 @@ def main():
     np.seterr(invalid = 'raise')
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
-    #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
+    model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     #model.parse_file('example/suzanne.obj') # Doesn't work because suzanne has valence of 2 since origin
+    #model.parse_file('example/fandisk.obj')
     # model.complete_model()
     #model.decimateAB()d
     model.print_count_valencies()
     decimating_output = model.decimate(15)
     
-    model.save_with_obja_f_by_f('Results_tests/DecimateAB_sphere4567.obj')
+    model.save_with_obja_f_by_f('Results_tests/DecimateAB_fandisk.obj')
 
 
     reco = Reconstructer()
