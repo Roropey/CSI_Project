@@ -78,22 +78,28 @@ class Reconstructer(obja.Model):
         while compte < nb_output and len(self.gate)>0:
 
             c_gate = self.gate.popleft()
-            self.print_single_vertex(c_gate[0].index)
-            self.print_single_vertex(c_gate[1].index)
             # Find information about the front face
             front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
             front_face = self.faces[front_face_information[0]]
-            #self.coloring_vertex_all_similar([0.5,0.5,0.5])
-            self.print_single_vertex(front_face_information[3].index)
-            c_gate[0].coloring_vertex([0,1,0])
-            front_face_information[1].coloring_vertex([0,1,0])
-            c_gate[1].coloring_vertex([0,0,1])
-            front_face_information[2].coloring_vertex([0,0,1])
-            front_face_information[3].coloring_vertex([1,0,0])
-            self.print_single_face(front_face_information[0])
-            self.save_with_obja_f_by_f('Results_tests/gate_re_cleaning_conquest_{}.obj'.format(self.count))
-            self.count += 1
             self.coloring_vertex_all_similar([0.5,0.5,0.5])
+
+            #c_gate[0].coloring_vertex([0,1,0])
+            front_face_information[1].coloring_vertex([0,1,0])
+
+            #c_gate[1].coloring_vertex([0,0,1])
+            front_face_information[2].coloring_vertex([0,0,1])
+
+            front_face_information[3].coloring_vertex([1,0,0])
+            self.print_single_vertex(c_gate[0].index)
+            self.print_single_vertex(c_gate[1].index)
+            self.print_single_vertex(front_face_information[3].index)
+            self.print_single_face(front_face_information[0])
+            self.save_f_by_f('Results_tests/gate_re_cleaning_conquest_{}.obj'.format(self.count))
+            self.save_v_and_f('Results_tests/gate_re_cleaning_conquest_{}_bis.obj'.format(self.count))
+            self.save_selected_f('Results_tests/face_re_cleaning_conquest_{}.obj'.format(self.count),[front_face_information[0]])
+            self.count += 1
+            self.coloring_vertex_all_similar([0.5, 0.5, 0.5])
+
 
             # if its front face is tagged conquered
             if front_face == obja.State.Conquered:
@@ -229,7 +235,7 @@ class Reconstructer(obja.Model):
                 print(self.vertices[border_patch[0]].retriangulation_type)
                 print(self.vertices[border_patch[1]].retriangulation_type)
                 self.coloring_vertex_based_type_retriang()
-                self.save_with_obja_f_by_f('Results_tests/problem_type.obj')
+                self.save_f_by_f('Results_tests/problem_type.obj')
                 raise Exception("Unexpected retriangulation_type for gate vertices")
             self.vertices[info_face_2[3]].retriangulation_type = -1
         elif valence == 5:

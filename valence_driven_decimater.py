@@ -129,7 +129,10 @@ class Decimater(obja.Model):
         c_gate[0].coloring_vertex([0,1,0])
         c_gate[1].coloring_vertex([0,0,1])
         front_face_information[3].coloring_vertex([1,0,0])        
-        self.save_with_obja_f_by_f('Results_tests/gate_cleaning_conquest_{}.obj'.format(self.count))
+        self.save_f_by_f('Results_tests/gate_cleaning_conquest_{}.obj'.format(self.count))
+
+        self.save_selected_f('Results_tests/face_cleaning_conquest_{}.obj'.format(self.count),
+                             [front_face_information[0]])
         self.count += 1
         #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
@@ -233,7 +236,7 @@ class Decimater(obja.Model):
  
     def retriangulation(self,vertex_to_be_removed):
         #print("Vertex to be removed: {}".format(vertex_to_be_removed.index))
-        self.save_with_obja_f_by_f('Results_tests/test1.obj')
+        self.save_f_by_f('Results_tests/test1.obj')
         #self.print_single_vertex(vertex_to_be_removed.index)
         #for face in self.vertices[vertex_to_be_removed.index].faces:
         #    self.print_single_face(face)
@@ -268,7 +271,7 @@ class Decimater(obja.Model):
                     break
             if not_breaking:
                 raise Exception("Not found next vertex in the chain around")
-        self.save_with_obja_f_by_f('Results_tests/test2.obj')
+        self.save_f_by_f('Results_tests/test2.obj')
         if len(border_patch) != vertex_to_be_removed.valence + 2:   
             # Through this process, since the gate face will be the last processed, the two vertices of the gates will be added in the chain and so being two time in it
             # (Once added when the left face of the gate face will be removed for the left gate vertex, and once the gate face is removed for the right gate vertex)
@@ -492,7 +495,7 @@ class Decimater(obja.Model):
             cond_do_decimating = self.presence_of_valence_of(2)
         print()
         
-        self.save_with_obja_f_by_f('Results_tests/After_Decimating_conquest.obj')
+        self.save_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
         self.set_everything_to_zeros()
         save_model = self.clone()
@@ -549,7 +552,7 @@ class Decimater(obja.Model):
                         #print("Need to be removed")
                         #print("Vertex to be removed {}".format(vertex_remove.index))
                     output_val_B.append([vertex_remove.valence,vertex_remove.index])
-                    self.save_with_obja_f_by_f('Results_tests/before_cleaning_conquest_{}.obj'.format(self.count))
+                    self.save_f_by_f('Results_tests/before_cleaning_conquest_{}.obj'.format(self.count))
                     self.retriangulation_4_cleaning_conquest(vertex_remove)
 
                 if self.presence_of_valence_of(2):
@@ -559,7 +562,7 @@ class Decimater(obja.Model):
             print("\nind_f: {}".format(ind_f))
             cond_do_cleaning = self.presence_of_valence_of(2)
         self.print_count_valencies()
-        self.save_with_obja_f_by_f('Results_tests/After_Cleaning_conquest.obj')
+        self.save_f_by_f('Results_tests/After_Cleaning_conquest.obj')
         decimating_output = Decimating_output(init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
         return decimating_output
     
@@ -581,7 +584,7 @@ class Decimater(obja.Model):
             count_iteration += 1
             print(f"{count_iteration}ieme decimation")
             decimating_output.append(self.decimateAB())
-            self.save_with_obja_f_by_f(f'Results_tests/Decimate{count_iteration}.obj')
+            self.save_f_by_f(f'Results_tests/Decimate{count_iteration}.obj')
             self.set_everything_to_free()
             self.set_everything_to_zeros()
             count_point = self.count_point()
@@ -605,7 +608,7 @@ def main():
     model.print_count_valencies()
     decimating_output = model.decimate(15)
     
-    model.save_with_obja_f_by_f('Results_tests/DecimateAB_fandisk.obj')
+    model.save_f_by_f('Results_tests/DecimateAB_fandisk.obj')
 
 
     reco = Reconstructer()
