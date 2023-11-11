@@ -20,7 +20,8 @@ class Vertex_removed():
         self.gate = [gate[0].index,gate[1].index]
     
 class Decimating_output():
-    def __init__(self,init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B):
+    def __init__(self,num_iteration,init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B):
+        self.num_iteration = num_iteration
         self.init_gate_decimating = init_gate_decimating
         self.init_gate_cleaning = init_gate_cleaning
         self.output_val_A = output_val_A
@@ -40,6 +41,7 @@ class Decimater(obja.Model):
         self.list_removed = []
         self.random_seed = 0
         self.count = 0
+        self.nb_decimate = 0
 
     def print_gate_index(self):
         print("List index vertices on gates: ", end="")
@@ -60,6 +62,15 @@ class Decimater(obja.Model):
         front_face_information = self.gate_to_face(c_gate[0], c_gate[1])
         front_vertex = front_face_information[3]
         front_face = self.faces[front_face_information[0]]
+        self.count += 1
+
+        self.coloring_vertex_all_similar([0.5,0.5,0.5])
+        c_gate[0].coloring_vertex([0,1,0])
+        c_gate[1].coloring_vertex([0,0,1])
+        front_face_information[3].coloring_vertex([1,0,0])   
+
+
+        self.save_f_by_f('Results_tests/gate_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
         #print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
@@ -129,10 +140,10 @@ class Decimater(obja.Model):
         c_gate[0].coloring_vertex([0,1,0])
         c_gate[1].coloring_vertex([0,0,1])
         front_face_information[3].coloring_vertex([1,0,0])        
-        self.save_f_by_f('Results_tests/gate_cleaning_conquest_{}.obj'.format(self.count))
+        #self.save_f_by_f('Results_tests/gate_cleaning_conquest_{}.obj'.format(self.count))
 
-        self.save_selected_f('Results_tests/face_cleaning_conquest_{}.obj'.format(self.count),
-                             [front_face_information[0]])
+        #self.save_selected_f('Results_tests/face_cleaning_conquest_{}.obj'.format(self.count),
+        #                     [front_face_information[0]])
         self.count += 1
         #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
@@ -141,7 +152,6 @@ class Decimater(obja.Model):
 
 
         elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free   :
-
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
             
@@ -176,7 +186,6 @@ class Decimater(obja.Model):
             return Vertex_removed(front_vertex,c_gate)
 
         elif front_vertex.state == obja.State.Free or front_vertex.state == obja.State.Conquered :
-            
             # Mark the front face as conquered
             front_face.state = obja.State.Conquered
 
@@ -432,7 +441,7 @@ class Decimater(obja.Model):
 
     def decimateAB(self):
         # inititialisation 
-               
+        self.count = 0
         output_val_A = []
         output_val_B = []
         init_gate_decimating = []
@@ -445,7 +454,7 @@ class Decimater(obja.Model):
         ind_4_inds_g = 0 # Index to choose in list of random integer that determind the gate choosen
         while cond_do_decimating: 
             self.copy(save_model)
-            print("Decimating Conquest ",end="")
+            #print("Decimating Conquest ",end="")
             cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
             while not cond:     #on cherche une face qui est visible
                 ind_4_inds_f += 1 # Increasing the index for choosing random index of face
@@ -475,25 +484,28 @@ class Decimater(obja.Model):
             ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2) # Increasing by one the index for index of gate, but ensuring to stay in border (>2 => =0)
             self.gate.append(init_gate_decimating)
 
+            print("init_gate_decimating_2")
+            self.print_single_vertex(init_gate_decimating[0].index)
+            self.print_single_vertex(init_gate_decimating[1].index)
+    
+
             # decimating_conquest
             while len(self.gate) > 0 :
-                print("decimating_conquest ",end="")
+                #print("decimating_conquest ",end="")
                 
-                c_gate = self.gate[0]
                 vertex_remove = self.decimating_conquest()
 
                 if vertex_remove == "Null_patch":
                     output_val_A.append("Null_patch")
                 
                 elif vertex_remove :
-                   
+                    self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
                     output_val_A.append([vertex_remove.valence,vertex_remove.index])
                     self.retriangulation(vertex_remove)
                 if self.presence_of_valence_of(2):
                     print("Break")
                     break
             cond_do_decimating = self.presence_of_valence_of(2)
-        print()
         
         self.save_f_by_f('Results_tests/After_Decimating_conquest.obj')
         self.set_everything_to_free()
@@ -508,7 +520,7 @@ class Decimater(obja.Model):
         while cond_do_cleaning:
             output_val_B = []
             self.copy(save_model)
-            print("Cleaning Conquest ",end="")
+            #print("Cleaning Conquest ",end="")
             cond = False
             while not cond:  # on cherche une face qui est visible
                 if ind_4_inds_g == 0:
@@ -539,7 +551,7 @@ class Decimater(obja.Model):
                 
                 
             while len(self.gate) > 0 :
-                print("cleaning_conquest ",end="")
+                #print("cleaning_conquest ",end="")
                 
                 
                 vertex_remove = self.cleaning_conquest()
@@ -552,7 +564,7 @@ class Decimater(obja.Model):
                         #print("Need to be removed")
                         #print("Vertex to be removed {}".format(vertex_remove.index))
                     output_val_B.append([vertex_remove.valence,vertex_remove.index])
-                    self.save_f_by_f('Results_tests/before_cleaning_conquest_{}.obj'.format(self.count))
+                    self.save_f_by_f('Results_tests/before_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
                     self.retriangulation_4_cleaning_conquest(vertex_remove)
 
                 if self.presence_of_valence_of(2):
@@ -563,7 +575,7 @@ class Decimater(obja.Model):
             cond_do_cleaning = self.presence_of_valence_of(2)
         self.print_count_valencies()
         self.save_f_by_f('Results_tests/After_Cleaning_conquest.obj')
-        decimating_output = Decimating_output(init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
+        decimating_output = Decimating_output(self.nb_decimate,init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
         return decimating_output
     
 
@@ -576,19 +588,20 @@ class Decimater(obja.Model):
         
 
     def decimate(self,nb_point_end = 15):
-        count_iteration = 0
         count_point = self.count_point()
         print("Number of verticies: {}".format(count_point))
         decimating_output = []
         while count_point > nb_point_end:
-            count_iteration += 1
-            print(f"{count_iteration}ieme decimation")
+            self.nb_decimate += 1
+            print(f"{self.nb_decimate}ieme decimation")
             decimating_output.append(self.decimateAB())
-            self.save_f_by_f(f'Results_tests/Decimate{count_iteration}.obj')
+            self.save_f_by_f(f'Results_tests/Decimate{self.nb_decimate}.obj')
             self.set_everything_to_free()
             self.set_everything_to_zeros()
             count_point = self.count_point()
             print("Number of verticies: {}".format(count_point))
+
+
         return decimating_output
 
 
@@ -597,6 +610,7 @@ def main():
     """
     Runs the program on the model given as parameter.
     """
+    
     np.seterr(invalid = 'raise')
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
@@ -607,6 +621,10 @@ def main():
     #model.decimateAB()d
     model.print_count_valencies()
     decimating_output = model.decimate(15)
+
+    print("init_gate_decimating_2")
+    model.print_single_vertex(decimating_output[1].init_gate_decimating[0].index)
+    model.print_single_vertex(decimating_output[1].init_gate_decimating[1].index)
     
     model.save_f_by_f('Results_tests/DecimateAB_fandisk.obj')
 

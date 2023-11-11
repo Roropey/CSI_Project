@@ -579,6 +579,8 @@ class Model:
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
         if count>=10:
             raise Exception("ça tourne en boucle")
+        
+        
     def gate_to_face(self, gate_vertex1, gate_vertex2):
         # Visit all faces from the 1st vertex to see if any face is shared in the right order with the 2nd vertex
         # Return the face index and the three vertices of the face that have the gate, and a value indicating the position of the third vertex (1 for a, 2 for b and 3 for c)
