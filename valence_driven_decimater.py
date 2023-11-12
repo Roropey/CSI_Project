@@ -507,10 +507,12 @@ class Decimater(obja.Model):
                     output_val_A.append("Null_patch")
                 
                 elif vertex_remove :
-                    # self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+                    self.coloring_vertex_based_type_retriang()
+                    self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
                     output_val_A.append([vertex_remove.valence,vertex_remove.index])
                     self.retriangulation(vertex_remove)
-                    # self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
+                    self.coloring_vertex_based_type_retriang()
+                    self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
                 if self.presence_of_valence_of(2):
                     print("Break")
                     break
