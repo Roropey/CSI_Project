@@ -552,6 +552,7 @@ class Model:
         """
         #print("Start find gate, counting: {}".format(count))
         count += 1
+        print("Find the gate {}".format(count))
         # Set the initial gate
         if init_gate is None:
             init_gate = [current_gate[1],current_gate[0]] 
@@ -560,8 +561,11 @@ class Model:
             current_gate = init_gate
         
         # find the next_gate
+        self.print_single_vertex(current_gate[0].index)
+        self.print_single_vertex(current_gate[1].index)
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
         #print("new_face: {}".format(gate_face[0]))
+        self.print_single_face(gate_face[0])
         new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
         #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
 
@@ -578,6 +582,7 @@ class Model:
             #print("Different new than init => continue")
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
         if count>=10:
+            self.save_f_by_f('Results_tests/problem_find_gate.obj')
             raise Exception("ça tourne en boucle")
         
         
@@ -585,7 +590,7 @@ class Model:
         # Visit all faces from the 1st vertex to see if any face is shared in the right order with the 2nd vertex
         # Return the face index and the three vertices of the face that have the gate, and a value indicating the position of the third vertex (1 for a, 2 for b and 3 for c)
         for index_face in gate_vertex1.faces:
-            if self.faces[index_face].a == gate_vertex1.index and self.faces[index_face].b == gate_vertex2.index :
+            if self.faces[index_face].a == gate_vertex1.index and self.faces[index_face].b == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c],3]
             elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
                 return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a],1]
@@ -597,11 +602,12 @@ class Model:
 
         # self.print_single_face(528)
         self.print_count_valencies()
-        # self.coloring_vertex_all_similar([0.5,0.5,0.5])
-        # self.vertices[264].coloring_vertex([0,0,1])
-        # self.vertices[262].coloring_vertex([0,1,0])
+        self.coloring_vertex_all_similar([0.5,0.5,0.5])
+        self.vertices[gate_vertex1.index].coloring_vertex([1,0,0])
+        self.vertices[gate_vertex2.index].coloring_vertex([0,1,0])
         # self.vertices[250].coloring_vertex([1,0,0])
-        # self.save_f_by_f('Results_tests/test_suzanne.obj')
+        self.save_f_by_f('Results_tests/echec_find_gate.obj')
+        self.print_faces()
         raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
     
     def create_face(self,indices):

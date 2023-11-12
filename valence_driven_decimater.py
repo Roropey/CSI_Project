@@ -467,21 +467,22 @@ class Decimater(obja.Model):
                 cond = faces_init.visible           # Condition for decimating: a face that is visible, be present in the model
             ind_g = inds_g[ind_4_inds_g]    # Choose index gate
             if ind_g == 1: # gate will be a and b            
-                self.vertices[faces_init.a].retriangulation_type = 1
-                self.vertices[faces_init.b].retriangulation_type = -1
+                self.vertices[faces_init.a].retriangulation_type = -1
+                self.vertices[faces_init.b].retriangulation_type = 1
                 init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
             elif ind_g == 2: # gate will be b and c
-                self.vertices[faces_init.b].retriangulation_type = 1
-                self.vertices[faces_init.c].retriangulation_type = -1
+                self.vertices[faces_init.b].retriangulation_type = -1
+                self.vertices[faces_init.c].retriangulation_type = 1
                 init_gate_decimating = [self.vertices[faces_init.b],self.vertices[faces_init.c]] # creation of the first gate
             elif ind_g == 3: # gate will be c and a                
-                self.vertices[faces_init.c].retriangulation_type = 1
-                self.vertices[faces_init.a].retriangulation_type = -1
+                self.vertices[faces_init.c].retriangulation_type = -1
+                self.vertices[faces_init.a].retriangulation_type = 1
                 init_gate_decimating = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
             else:
                 raise Exception("Unexpected value for ind_g {}".format(ind_g))
 
             ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2) # Increasing by one the index for index of gate, but ensuring to stay in border (>2 => =0)
+            self.gate = deque()
             self.gate.append(init_gate_decimating)
 
             print("init_gate_decimating_2")
@@ -499,9 +500,10 @@ class Decimater(obja.Model):
                     output_val_A.append("Null_patch")
                 
                 elif vertex_remove :
-                    self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+                    # self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
                     output_val_A.append([vertex_remove.valence,vertex_remove.index])
                     self.retriangulation(vertex_remove)
+                    # self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
                 if self.presence_of_valence_of(2):
                     print("Break")
                     break
@@ -564,8 +566,9 @@ class Decimater(obja.Model):
                         #print("Need to be removed")
                         #print("Vertex to be removed {}".format(vertex_remove.index))
                     output_val_B.append([vertex_remove.valence,vertex_remove.index])
-                    self.save_f_by_f('Results_tests/before_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+                    # self.save_f_by_f('Results_tests/before_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
                     self.retriangulation_4_cleaning_conquest(vertex_remove)
+                    # self.save_f_by_f('Results_tests/after_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
 
                 if self.presence_of_valence_of(2):
                     print("Break")
