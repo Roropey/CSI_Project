@@ -552,7 +552,7 @@ class Model:
         """
         #print("Start find gate, counting: {}".format(count))
         count += 1
-        print("Find the gate {}".format(count))
+        #print("Find the gate {}".format(count))
         # Set the initial gate
         if init_gate is None:
             init_gate = [current_gate[1],current_gate[0]] 
@@ -561,11 +561,11 @@ class Model:
             current_gate = init_gate
         
         # find the next_gate
-        self.print_single_vertex(current_gate[0].index)
-        self.print_single_vertex(current_gate[1].index)
+        #self.print_single_vertex(current_gate[0].index)
+        #self.print_single_vertex(current_gate[1].index)
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
         #print("new_face: {}".format(gate_face[0]))
-        self.print_single_face(gate_face[0])
+        #self.print_single_face(gate_face[0])
         new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
         #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
 
@@ -581,6 +581,53 @@ class Model:
         if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<10 :
             #print("Different new than init => continue")
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
+        if count>=10:
+            self.save_f_by_f('Results_tests/problem_find_gate.obj')
+            raise Exception("ça tourne en boucle")
+        
+
+    def find_the_gate_index(self, vertice_center,current_gate, init_gate = None ,count = 0):
+        """
+        Recursive function to find gates when the front vertex is to be removed.
+
+        Parameters:
+        - vertice_center: The front vertex of the current gate.
+        - current_gate: The current gate being explored.
+        - init_gate: The initial gate used as a reference to stop the recursion.
+
+        """
+        #print("Start find gate, counting: {}".format(count))
+        count += 1
+        #print("Find the gate {}".format(count))
+        # Set the initial gate
+        if init_gate is None:
+            init_gate = [current_gate[1],current_gate[0]] 
+            # inverse in the self.gate all gate orientation as well as the init 
+            # => except of the first gate (init), all gate need to point in the future outside of the batch
+            current_gate = init_gate
+        
+        # find the next_gate
+        #self.print_single_vertex(current_gate[0].index)
+        #self.print_single_vertex(current_gate[1].index)
+        gate_face = self.gate_to_face(vertice_center, current_gate[0])
+        #print("new_face: {}".format(gate_face[0]))
+        #self.print_single_face(gate_face[0])
+        new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
+        #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
+
+        # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
+        if not(new_gate[0].state == State.Conquered  and new_gate[1].state == State.Conquered)  and init_gate != new_gate : 
+            #print("Not conquered gate")
+            new_gate[0].state = State.Conquered  
+            new_gate[1].state = State.Conquered 
+            n_gate = [new_gate[0].index,new_gate[1].index]
+            self.gate.append(n_gate)
+            #self.print_gate_index()
+
+        # Check if the new gate is different from the initial gate to avoid infinite recursion
+        if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<10 :
+            #print("Different new than init => continue")
+            self.find_the_gate_index(vertice_center,new_gate, init_gate,count)
         if count>=10:
             self.save_f_by_f('Results_tests/problem_find_gate.obj')
             raise Exception("ça tourne en boucle")
@@ -607,7 +654,7 @@ class Model:
         self.vertices[gate_vertex2.index].coloring_vertex([0,1,0])
         # self.vertices[250].coloring_vertex([1,0,0])
         self.save_f_by_f('Results_tests/echec_find_gate.obj')
-        self.print_faces()
+        #self.print_faces()
         raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
     
     def create_face(self,indices):

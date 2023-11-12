@@ -70,16 +70,18 @@ class Decimater(obja.Model):
         front_face_information[3].coloring_vertex([1,0,0])   
 
 
-        self.save_f_by_f('Results_tests/gate_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+        self.save_f_by_f('Results_tests/decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
         #print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
+            print(f"Itération decimating {self.count}, pass")
             #print("Tagged conquered or to be removed")
             return None
 
 
         #elif the front vertex is free and has a valence <= 6
         elif front_vertex.state == obja.State.Free and len(front_vertex.faces)<=6:
+            print(f"Itération decimating {self.count}, valence {len(front_vertex.faces)}")
             #print("Free and <=6")
             # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
             front_vertex.state = obja.State.To_be_removed
@@ -94,6 +96,7 @@ class Decimater(obja.Model):
         
         # else, (if its front vertex is free and has a valence > 6) or (if its front vertex is tagged conquered)
         elif (front_vertex.state == obja.State.Free and len(front_vertex.faces)>6) or front_vertex.state == obja.State.Conquered :
+            print(f"Itération decimating {self.count}, Null_patch")
             #print("(free and >6) or (vertex conquered)")
             # The front face is flagged conquered
             front_face.state = obja.State.Conquered
@@ -140,7 +143,7 @@ class Decimater(obja.Model):
         c_gate[0].coloring_vertex([0,1,0])
         c_gate[1].coloring_vertex([0,0,1])
         front_face_information[3].coloring_vertex([1,0,0])        
-        #self.save_f_by_f('Results_tests/gate_cleaning_conquest_{}.obj'.format(self.count))
+        #self.save_f_by_f('Results_tests/cleaning_conquest_{}.obj'.format(self.count))
 
         #self.save_selected_f('Results_tests/face_cleaning_conquest_{}.obj'.format(self.count),
         #                     [front_face_information[0]])
@@ -148,10 +151,12 @@ class Decimater(obja.Model):
         #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
+            print(f"Itération cleaning {self.count}, pass")
             return None
 
 
         elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free   :
+            print(f"Itération cleaning {self.count}, valence 3")
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
             
@@ -186,6 +191,7 @@ class Decimater(obja.Model):
             return Vertex_removed(front_vertex,c_gate)
 
         elif front_vertex.state == obja.State.Free or front_vertex.state == obja.State.Conquered :
+            print(f"Itération cleaning {self.count}, null_patch")
             # Mark the front face as conquered
             front_face.state = obja.State.Conquered
 
@@ -441,9 +447,9 @@ class Decimater(obja.Model):
 
     def decimateAB(self):
         # inititialisation 
-        self.count = 0
-        output_val_A = []
-        output_val_B = []
+        
+        
+        
         init_gate_decimating = []
         inds_g = [1,2,3]    # List of integer that determined the choosen gate (will be shuffle)
         save_model = self.clone()
@@ -452,7 +458,8 @@ class Decimater(obja.Model):
         inds_f = random.sample(range(0,len(self.faces)),len(self.faces))   # List of index of faces, generated randomly (random.shuffle doesn't work on range object so use a sample)
         cond_do_decimating = True
         ind_4_inds_g = 0 # Index to choose in list of random integer that determind the gate choosen
-        while cond_do_decimating: 
+        while cond_do_decimating:
+            output_val_A = [] 
             self.copy(save_model)
             #print("Decimating Conquest ",end="")
             cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
@@ -489,7 +496,7 @@ class Decimater(obja.Model):
             self.print_single_vertex(init_gate_decimating[0].index)
             self.print_single_vertex(init_gate_decimating[1].index)
     
-
+            self.count = 0
             # decimating_conquest
             while len(self.gate) > 0 :
                 #print("decimating_conquest ",end="")
@@ -521,6 +528,7 @@ class Decimater(obja.Model):
         inds_f = random.sample(range(0,len(self.faces)),len(self.faces))
         while cond_do_cleaning:
             output_val_B = []
+            output_val_B = []
             self.copy(save_model)
             #print("Cleaning Conquest ",end="")
             cond = False
@@ -551,7 +559,7 @@ class Decimater(obja.Model):
                 
                 #self.print_single_face(ind_f)
                 
-                
+            self.count = 0 
             while len(self.gate) > 0 :
                 #print("cleaning_conquest ",end="")
                 
@@ -626,8 +634,8 @@ def main():
     decimating_output = model.decimate(15)
 
     print("init_gate_decimating_2")
-    model.print_single_vertex(decimating_output[1].init_gate_decimating[0].index)
-    model.print_single_vertex(decimating_output[1].init_gate_decimating[1].index)
+    model.print_single_vertex(decimating_output[0].init_gate_decimating[0].index)
+    model.print_single_vertex(decimating_output[0].init_gate_decimating[1].index)
     
     model.save_f_by_f('Results_tests/DecimateAB_fandisk.obj')
 
