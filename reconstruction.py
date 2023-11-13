@@ -11,7 +11,7 @@ class Reconstructer(obja.Model):
         self.list_removed = []
         #with as output:
         self.file = open(output_name, 'w')
-        self.output = obja.Output(self.file , random_color=True)
+        self.output = obja.Output(self.file , random_color=False)
         self.count = 0
         self.count_bis = 0
 
@@ -66,9 +66,10 @@ class Reconstructer(obja.Model):
                 print(f"Itération decimating reconstruction {self.count}, compte {compte} Null_patch")
                 # The front face is flagged conquered
                 front_face.state = obja.State.Conquered
+                self.triangulation_null_patch(c_gate[0],c_gate[1], front_face_information[3].index)
 
                 # creates the 2 new gate 
-                new_gates = [[front_face_information[2].index, front_face_information[3].index],[front_face_information[3].index,front_face_information[1].index]]
+                new_gates = [[front_face_information[3].index, front_face_information[2].index],[front_face_information[1].index,front_face_information[3].index]]
 
                 # add the gates to the fifo
                 for gate in new_gates:

@@ -52,6 +52,19 @@ class Decimater(obja.Model):
     def increase_rd_seed(self):        
         self.random_seed += 1
         random.seed(self.random_seed)
+
+    #def triangulation_null_patch(self,index0,index1,index_front_vertex):
+    #    if (self.vertices[index0].retriangulation_type==1) and (self.vertices[index1].retriangulation_type==-1):
+    #            self.vertices[index_front_vertex].retriangulation_type=1
+    #    elif (self.vertices[index0].retriangulation_type==-1) and (self.vertices[index1].retriangulation_type==1):
+    #            self.vertices[index_front_vertex].retriangulation_type=1
+    #    elif (self.vertices[index0].retriangulation_type==1) and (self.vertices[index1].retriangulation_type==1):
+    #            self.vertices[index_front_vertex].retriangulation_type=-1
+    #    elif (self.vertices[index0].retriangulation_type==-1) and (self.vertices[index1].retriangulation_type==-1):
+    #            self.vertices[index_front_vertex].retriangulation_type=1
+    #    else : 
+    #        raise Exception("Unexpected retriangulation_type for null_patch")  
+
          
     
     def decimating_conquest(self):
@@ -98,11 +111,13 @@ class Decimater(obja.Model):
         elif (front_vertex.state == obja.State.Free and len(front_vertex.faces)>6) or front_vertex.state == obja.State.Conquered :
             print(f"Itération decimating {self.count}, Null_patch")
             #print("(free and >6) or (vertex conquered)")
+            self.triangulation_null_patch(c_gate[0].index,c_gate[1].index, front_face_information[3].index)
+
             # The front face is flagged conquered
             front_face.state = obja.State.Conquered
 
             # creates the 2 new gate 
-            new_gates = [front_face_information[2:],[front_face_information[3],front_face_information[1]]]
+            new_gates = [[front_face_information[3],front_face_information[2]],[front_face_information[1],front_face_information[3]]]
 
             # add the gates to the fifo
             for gate in new_gates:
@@ -618,12 +633,12 @@ def main():
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
     #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
-    #model.parse_file('example/suzanne.obj') # Doesn't work because suzanne has valence of 2 since origin
-    model.parse_file('example/fandisk.obj')
+    model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
+    #model.parse_file('example/fandisk.obj')
     # model.complete_model()
     #model.decimateAB()d
     model.print_count_valencies()
-    decimating_output = model.decimate(5000,2)
+    decimating_output = model.decimate(50,5)
 
     print("init_gate_decimating_2")
     model.print_single_vertex(decimating_output[0].init_gate_decimating[0].index)

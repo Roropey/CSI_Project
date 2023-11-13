@@ -537,6 +537,20 @@ class Model:
         for vertex in self.vertices:
             vertex.coloring_vertex(color)
 
+    def triangulation_null_patch(self,index0,index1,index_front_vertex):
+        if (self.vertices[index0].retriangulation_type==1) and (self.vertices[index1].retriangulation_type==-1):
+                self.vertices[index_front_vertex].retriangulation_type=1
+        elif (self.vertices[index0].retriangulation_type==-1) and (self.vertices[index1].retriangulation_type==1):
+                self.vertices[index_front_vertex].retriangulation_type=1
+        elif (self.vertices[index0].retriangulation_type==1) and (self.vertices[index1].retriangulation_type==1):
+                self.vertices[index_front_vertex].retriangulation_type=-1
+        elif (self.vertices[index0].retriangulation_type==-1) and (self.vertices[index1].retriangulation_type==-1):
+                self.vertices[index_front_vertex].retriangulation_type=1
+        else : 
+            raise Exception("Unexpected retriangulation_type for null_patch")  
+
+         
+
     """
     Function specific our case:
     """
@@ -733,7 +747,14 @@ class Output:
                 random.uniform(0, 1)),
                 file=self.output
             )
-
+    def color_face(self,index,face,color):
+        print('fc {} {} {} {}'.format(
+                self.face_mapping[index] + 1,
+                color[0],
+                color[1],
+                color[2]),
+                file=self.output
+            )
     def edit_face(self, index, face):
         """
         Changes the indices of the vertices of the specified face.
