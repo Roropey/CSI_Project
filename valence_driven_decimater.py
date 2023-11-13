@@ -88,14 +88,14 @@ class Decimater(obja.Model):
         #print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
-            print(f"Init face {self.ind_4_inds_f}, Itération decimating {self.count}, pass")
+            #print(f"Try {self.ind_4_inds_f}, Itération decimating {self.count}, pass")
             #print("Tagged conquered or to be removed")
             return None
 
 
         #elif the front vertex is free and has a valence <= 6
         elif front_vertex.state == obja.State.Free and len(front_vertex.faces)<=6:
-            print(f"Init face {self.ind_4_inds_f}, Itération decimating {self.count}, valence {len(front_vertex.faces)}")
+            #print(f"Try {self.ind_4_inds_f}, Itération decimating {self.count}, valence {len(front_vertex.faces)}")
             #print("Free and <=6")
             # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
             front_vertex.state = obja.State.To_be_removed
@@ -110,7 +110,7 @@ class Decimater(obja.Model):
         
         # else, (if its front vertex is free and has a valence > 6) or (if its front vertex is tagged conquered)
         elif (front_vertex.state == obja.State.Free and len(front_vertex.faces)>6) or front_vertex.state == obja.State.Conquered :
-            print(f"Init face {self.ind_4_inds_f}, Itération decimating {self.count}, Null_patch")
+            #print(f"Try {self.ind_4_inds_f}, Itération decimating {self.count}, Null_patch")
             #print("(free and >6) or (vertex conquered)")
             self.triangulation_null_patch(c_gate[0].index,c_gate[1].index, front_face_information[3].index)
 
@@ -172,7 +172,7 @@ class Decimater(obja.Model):
 
 
         elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free   :
-            print(f"Itération cleaning {self.count}, valence 3")
+            #print(f"Itération cleaning {self.count}, valence 3")
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
             
@@ -480,6 +480,7 @@ class Decimater(obja.Model):
             cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
             while not cond:     #on cherche une face qui est visible
                 self.ind_4_inds_f += 1 # Increasing the index for choosing random index of face
+                
                 self.increase_rd_seed() # Modify seed to ensure different shuffle
                 random.shuffle(inds_g)  # Shuffling order of gates
                 if self.ind_4_inds_f >= len(self.faces): # If too big, all face index has been tested
@@ -502,7 +503,7 @@ class Decimater(obja.Model):
                 init_gate_decimating = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
             else:
                 raise Exception("Unexpected value for ind_g {}".format(ind_g))
-
+            print(f"Decimating {self.nb_decimate}, try {self.ind_4_inds_f}, gate {ind_4_inds_g}")
             ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2) # Increasing by one the index for index of gate, but ensuring to stay in border (>2 => =0)
             self.gate = deque()
             self.gate.append(init_gate_decimating)
@@ -522,7 +523,8 @@ class Decimater(obja.Model):
                     self.retriangulation(vertex_remove)
                     #self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
                 if self.presence_of_valence_of(2):
-                    print("Break")
+                    #self.save_f_by_f('Fail/Fail_decimating_{}_try_{}_gate_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f,limit_value(ind_4_inds_g-1,0,2)))
+
                     break
             cond_do_decimating = self.presence_of_valence_of(2)
         #if len(output_val_A)<100:
@@ -564,7 +566,7 @@ class Decimater(obja.Model):
                 ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2)
                 if faces_init.visible and not(len(init_gate_cleaning[0].faces) == 3 or len(init_gate_cleaning[1].faces) == 3):
                     cond = True
-                
+            print(f"Cleaning {self.nb_decimate}, try {self.ind_4_inds_f}, gate {limit_value(ind_4_inds_g-1,0,2)}") 
             self.gate.append(init_gate_cleaning)
 
                 
@@ -584,7 +586,7 @@ class Decimater(obja.Model):
                     # self.save_f_by_f('Results_tests/after_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
 
                 if self.presence_of_valence_of(2):
-                    print("Break")
+                    #self.save_f_by_f('Fail/Fail_cleaning_{}_try_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f))
                     break
 
             print("\nind_f: {}".format(ind_f))
@@ -635,11 +637,11 @@ def main():
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
     #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     #model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
-    model.parse_file('example/Icosphere_2562_vertices.obj')
-    # model.complete_model()
+    #model.parse_file('example/Icosphere_2562_vertices.obj')
+    model.parse_file('example/fandisk.obj')
     #model.decimateAB()d
     model.print_count_valencies()
-    decimating_output = model.decimate(1000,1)
+    decimating_output = model.decimate(2000,20)
 
     print("init_gate_decimating_2")
     model.print_single_vertex(decimating_output[0].init_gate_decimating[0].index)
@@ -648,10 +650,10 @@ def main():
     model.save_f_by_f('Results_tests/DecimateAB_fandisk.obj')
 
 
-    reco = Reconstructer()
+    reco = Reconstructer(True)
     reco.copy(model)
     reconstruction = reco.reconstruction(decimating_output)
-
+    reco.file.close()
 
 if __name__ == '__main__':
     main()

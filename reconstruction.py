@@ -5,7 +5,7 @@ import random
 
 class Reconstructer(obja.Model):
 
-    def __init__(self,output_name='.\Output_reconstruction.obja'):
+    def __init__(self,reset_color=False,output_name='.\Output_reconstruction.obja'):
         super().__init__()
         self.deleted_faces = set()
         self.gate = deque()
@@ -13,12 +13,13 @@ class Reconstructer(obja.Model):
         #with as output:
         self.file = open(output_name, 'w')
         self.output = obja.Output(self.file , random_color=False)
+        self.reset_color = reset_color
         self.count = 0
         self.count_bis = 0
 
 
     def decimating_reconquest(self,output_val):
-        print("Start function redecimating")
+        #print("Start function redecimating")
         
         nb_output = len(output_val)-1
         compte = 0
@@ -41,12 +42,12 @@ class Reconstructer(obja.Model):
             
             # if its front face is tagged conquered 
             if front_face.state == obja.State.Conquered:
-                print(f"Itération decimating reconstruction {self.count}, compte {compte} pass")
+                #print(f"Itération decimating reconstruction {self.count}, compte {compte} pass")
                 pass
 
             #elif  valence <= 6
             elif output_val[compte][0] in [3,4,5,6]: 
-                print(f"Itération decimating reconstruction {self.count}, compte {compte} retriangulation {output_val[compte][0]}")
+                #print(f"Itération decimating reconstruction {self.count}, compte {compte} retriangulation {output_val[compte][0]}")
                 self.retriangulation(output_val[compte],[self.vertices[c_gate[0]],self.vertices[c_gate[1]]])
                 #self.save_f_by_f('Results_tests/re_decimating_conquest_{}_retriangulation.obj'.format(self.count))
                
@@ -64,7 +65,7 @@ class Reconstructer(obja.Model):
 
             # else Null_patch
             elif output_val[compte] == "Null_patch":
-                print(f"Itération decimating reconstruction {self.count}, compte {compte} Null_patch")
+                #print(f"Itération decimating reconstruction {self.count}, compte {compte} Null_patch")
                 # The front face is flagged conquered
                 front_face.state = obja.State.Conquered
                 self.triangulation_null_patch(c_gate[0],c_gate[1], front_face_information[3].index)
@@ -87,7 +88,7 @@ class Reconstructer(obja.Model):
     def cleaning_reconquest(self, output):
 
         #function for reconstruction of cleaning-conquest
-        print("start the reconstruction of cleaning conquest:")
+        #print("start the reconstruction of cleaning conquest:")
         
         nb_output = len(output)-1
         compte = 0
@@ -111,11 +112,11 @@ class Reconstructer(obja.Model):
 
             # if its front face is tagged conquered
             if front_face.state == obja.State.Conquered:
-                print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} pass")
+                #print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} pass")
                 pass
 
             elif output[compte][0] == 3:
-                print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} retriangulation")
+                #print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} retriangulation")
 
                 self.retriangulation(output[compte],[self.vertices[c_gate[0]],self.vertices[c_gate[1]]])
 
@@ -159,7 +160,7 @@ class Reconstructer(obja.Model):
 
             # else Null_patch
             elif output[compte] == "Null_patch":
-                print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} Null_patch")
+                #print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} Null_patch")
                 
                 # Mark the front face as conquered
                 front_face.state = obja.State.Conquered
@@ -180,7 +181,10 @@ class Reconstructer(obja.Model):
         if (compte<nb_output and len(self.gate)==0):
             raise Exception("Error in the cleaning reconquest")
 
-  
+    def face_all_same_color(self,color):
+        for face_index in range(len(self.faces)):
+            if self.faces[face_index].visible:
+                self.output.color_face(face_index,color)
 
     def recreate_faces(self,index_to_added,border_patch,face_existing):
 
@@ -202,9 +206,9 @@ class Reconstructer(obja.Model):
                 self.remove_face(tuple_index[0])
                 self.output.remove_face(tuple_index[0])
         # Create the new faces (on the model and the ouput)
-        color = [random.uniform(0, 1),
-                random.uniform(0, 1),
-                random.uniform(0, 1)]
+        color = [random.uniform(0, 0.85),
+                random.uniform(0, 0.85),
+                random.uniform(0, 0.85)]
         for i in range(len(border_patch)):
             j = i + 1
             if j >= len(border_patch):
@@ -392,6 +396,8 @@ class Reconstructer(obja.Model):
 
             self.set_everything_to_free()
             self.set_everything_to_zeros()
+            if self.reset_color:
+                self.face_all_same_color([1,1,1])
 
             decimating_output_AB = decimating_output[i]
             print(decimating_output_AB.num_iteration)
@@ -403,12 +409,13 @@ class Reconstructer(obja.Model):
             self.gate.append(init_gate)
             self.vertices[self.gate[0][0]].retriangulation_type = -1
             self.vertices[self.gate[0][1]].retriangulation_type = 1
-
             self.cleaning_reconquest(output_B)
             self.save_f_by_f('Results_tests/after_cleaning_reconquest_{}.obj'.format(i))
 
             self.set_everything_to_free()
             self.set_everything_to_zeros()
+            if self.reset_color:
+                self.face_all_same_color([1,1,1])
 
             if len(self.gate)>0:
                 raise Exception("il reste des gates apres un cleaning")
