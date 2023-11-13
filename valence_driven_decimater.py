@@ -34,12 +34,12 @@ class Decimater(obja.Model):
     """
 
     """
-    def __init__(self):
+    def __init__(self,random_seed=0):
         super().__init__()
         self.deleted_faces = set()
         self.gate = deque()
         self.list_removed = []
-        self.random_seed = 0
+        self.random_seed = random_seed
         self.count = 0
         self.nb_decimate = 0
         self.ind_4_inds_f = -1
@@ -503,7 +503,7 @@ class Decimater(obja.Model):
                 init_gate_decimating = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
             else:
                 raise Exception("Unexpected value for ind_g {}".format(ind_g))
-            print(f"Decimating {self.nb_decimate}, try {self.ind_4_inds_f}//{len(self.faces)}, gate {ind_4_inds_g}")
+            print(f"Decimating {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {ind_4_inds_g}")
             ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2) # Increasing by one the index for index of gate, but ensuring to stay in border (>2 => =0)
             self.gate = deque()
             self.gate.append(init_gate_decimating)
@@ -566,7 +566,7 @@ class Decimater(obja.Model):
                 ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2)
                 if faces_init.visible and not(len(init_gate_cleaning[0].faces) == 3 or len(init_gate_cleaning[1].faces) == 3):
                     cond = True
-            print(f"Cleaning {self.nb_decimate}, try {self.ind_4_inds_f}//{len(self.faces)}, gate {limit_value(ind_4_inds_g-1,0,2)}") 
+            print(f"Cleaning {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {limit_value(ind_4_inds_g-1,0,2)}") 
             self.gate.append(init_gate_cleaning)
 
                 
