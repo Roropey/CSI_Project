@@ -1,6 +1,7 @@
 import obja
 from collections import deque
 from utility import limit_value
+import random
 
 class Reconstructer(obja.Model):
 
@@ -201,12 +202,16 @@ class Reconstructer(obja.Model):
                 self.remove_face(tuple_index[0])
                 self.output.remove_face(tuple_index[0])
         # Create the new faces (on the model and the ouput)
+        color = [random.uniform(0, 1),
+                random.uniform(0, 1),
+                random.uniform(0, 1)]
         for i in range(len(border_patch)):
             j = i + 1
             if j >= len(border_patch):
                 j = j - len(border_patch)
             index_face = self.create_face([border_patch[i], border_patch[j], vertex_to_be_added.index])
             self.output.add_face(index_face, self.faces[index_face])
+            self.output.color_face(index_face,color)
         
 
     def retriangulation(self,output,gate):

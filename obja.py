@@ -747,7 +747,7 @@ class Output:
                 random.uniform(0, 1)),
                 file=self.output
             )
-    def color_face(self,index,face,color):
+    def color_face(self,index,color):
         print('fc {} {} {} {}'.format(
                 self.face_mapping[index] + 1,
                 color[0],

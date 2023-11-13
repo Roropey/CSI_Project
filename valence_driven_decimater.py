@@ -42,6 +42,7 @@ class Decimater(obja.Model):
         self.random_seed = 0
         self.count = 0
         self.nb_decimate = 0
+        self.ind_4_inds_f = -1
 
     def print_gate_index(self):
         print("List index vertices on gates: ", end="")
@@ -87,14 +88,14 @@ class Decimater(obja.Model):
         #print("Gate analyzed: ({},{})\nVertex possibly removed {}\nFace index possibly removed: {}".format(c_gate[0].index,c_gate[1].index,front_vertex.index,front_face_information[0]))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
-            print(f"Itération decimating {self.count}, pass")
+            print(f"Init face {self.ind_4_inds_f}, Itération decimating {self.count}, pass")
             #print("Tagged conquered or to be removed")
             return None
 
 
         #elif the front vertex is free and has a valence <= 6
         elif front_vertex.state == obja.State.Free and len(front_vertex.faces)<=6:
-            print(f"Itération decimating {self.count}, valence {len(front_vertex.faces)}")
+            print(f"Init face {self.ind_4_inds_f}, Itération decimating {self.count}, valence {len(front_vertex.faces)}")
             #print("Free and <=6")
             # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
             front_vertex.state = obja.State.To_be_removed
@@ -109,7 +110,7 @@ class Decimater(obja.Model):
         
         # else, (if its front vertex is free and has a valence > 6) or (if its front vertex is tagged conquered)
         elif (front_vertex.state == obja.State.Free and len(front_vertex.faces)>6) or front_vertex.state == obja.State.Conquered :
-            print(f"Itération decimating {self.count}, Null_patch")
+            print(f"Init face {self.ind_4_inds_f}, Itération decimating {self.count}, Null_patch")
             #print("(free and >6) or (vertex conquered)")
             self.triangulation_null_patch(c_gate[0].index,c_gate[1].index, front_face_information[3].index)
 
@@ -466,7 +467,7 @@ class Decimater(obja.Model):
         inds_g = [1,2,3]    # List of integer that determined the choosen gate (will be shuffle)
         save_model = self.clone()
         self.increase_rd_seed()
-        ind_4_inds_f = -1   # Index to choose in list of index of faces
+        self.ind_4_inds_f = -1   # Index to choose in list of index of faces
         inds_f = random.sample(range(0,len(self.faces)),len(self.faces))   # List of index of faces, generated randomly (random.shuffle doesn't work on range object so use a sample)
         cond_do_decimating = True
         ind_4_inds_g = 0 # Index to choose in list of random integer that determind the gate choosen
@@ -478,12 +479,12 @@ class Decimater(obja.Model):
             #print("Decimating Conquest ",end="")
             cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
             while not cond:     #on cherche une face qui est visible
-                ind_4_inds_f += 1 # Increasing the index for choosing random index of face
+                self.ind_4_inds_f += 1 # Increasing the index for choosing random index of face
                 self.increase_rd_seed() # Modify seed to ensure different shuffle
                 random.shuffle(inds_g)  # Shuffling order of gates
-                if ind_4_inds_f >= len(self.faces): # If too big, all face index has been tested
+                if self.ind_4_inds_f >= len(self.faces): # If too big, all face index has been tested
                     raise Exception("No faces respect conditions for decimating")
-                ind_f = inds_f[ind_4_inds_f]  # Choosing the index of face
+                ind_f = inds_f[self.ind_4_inds_f]  # Choosing the index of face
                 faces_init = self.faces[ind_f] # Take the face
                 cond = faces_init.visible           # Condition for decimating: a face that is visible, be present in the model
             ind_g = inds_g[ind_4_inds_g]    # Choose index gate
@@ -534,7 +535,7 @@ class Decimater(obja.Model):
         cond_do_cleaning = True
         self.random_seed += 1
         random.seed(self.random_seed)
-        ind_4_inds_f = -1
+        self.ind_4_inds_f = -1
         ind_4_inds_g = 0
         inds_f = random.sample(range(0,len(self.faces)),len(self.faces))
         while cond_do_cleaning:
@@ -544,11 +545,11 @@ class Decimater(obja.Model):
             cond = False
             while not cond:  # on cherche une face qui est visible
                 if ind_4_inds_g == 0:
-                    ind_4_inds_f += 1
-                    if ind_4_inds_f >= len(self.faces):
-                        raise Exception("No faces respect conditions for cleaning (ind_4_inds_f: {})".format(ind_4_inds_f))
+                    self.ind_4_inds_f += 1
+                    if self.ind_4_inds_f >= len(self.faces):
+                        raise Exception("No faces respect conditions for cleaning (self.ind_4_inds_f: {})".format(self.ind_4_inds_f))
                 
-                ind_f = inds_f[ind_4_inds_f]
+                ind_f = inds_f[self.ind_4_inds_f]
                 faces_init = self.faces[ind_f]
                 ind_g = inds_g[ind_4_inds_g] 
                 if ind_g == 1: # gate will be a and b            
@@ -633,12 +634,12 @@ def main():
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
     #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
-    model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
-    #model.parse_file('example/fandisk.obj')
+    #model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
+    model.parse_file('example/Icosphere_2562_vertices.obj')
     # model.complete_model()
     #model.decimateAB()d
     model.print_count_valencies()
-    decimating_output = model.decimate(50,5)
+    decimating_output = model.decimate(1000,1)
 
     print("init_gate_decimating_2")
     model.print_single_vertex(decimating_output[0].init_gate_decimating[0].index)
