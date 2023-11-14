@@ -1,0 +1,5 @@
+Fail bunny_bis
+Fail suzanne_bis
+Fail cow
+Fail fandisk
+Fail hippo

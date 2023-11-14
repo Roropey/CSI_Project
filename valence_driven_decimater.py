@@ -28,7 +28,23 @@ class Decimating_output():
         self.output_val_B = output_val_B
         
 
+class None_respect_cond(Exception):
+    """
+    An operation references a face vertex that does not exist.
+    """
 
+    def __init__(self, case):
+        """
+        Creates the error from index of the referenced face vertex and the line where the error occured.
+        """
+        self.case = case
+        super().__init__()
+
+    def __str__(self):
+        """
+        Pretty prints the error.
+        """
+        return f'No faces respect conditions for {self.case}'
         
 class Decimater(obja.Model):
     """
@@ -463,134 +479,141 @@ class Decimater(obja.Model):
 
     def decimateAB(self):
         # inititialisation 
-        init_gate_decimating = []
         inds_g = [1,2,3]    # List of integer that determined the choosen gate (will be shuffle)
-        save_model = self.clone()
-        self.increase_rd_seed()
-        self.ind_4_inds_f = -1   # Index to choose in list of index of faces
-        inds_f = random.sample(range(0,len(self.faces)),len(self.faces))   # List of index of faces, generated randomly (random.shuffle doesn't work on range object so use a sample)
-        cond_do_decimating = True
-        ind_4_inds_g = 0 # Index to choose in list of random integer that determind the gate choosen
-        
 
-        while cond_do_decimating:
-            output_val_A = [] 
-            self.copy(save_model)
-            #print("Decimating Conquest ",end="")
-            cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
-            while not cond:     #on cherche une face qui est visible
-                self.ind_4_inds_f += 1 # Increasing the index for choosing random index of face
-                
-                self.increase_rd_seed() # Modify seed to ensure different shuffle
-                random.shuffle(inds_g)  # Shuffling order of gates
-                if self.ind_4_inds_f >= len(self.faces): # If too big, all face index has been tested
-                    raise Exception("No faces respect conditions for decimating")
-                ind_f = inds_f[self.ind_4_inds_f]  # Choosing the index of face
-                faces_init = self.faces[ind_f] # Take the face
-                cond = faces_init.visible           # Condition for decimating: a face that is visible, be present in the model
-            ind_g = inds_g[ind_4_inds_g]    # Choose index gate
-            if ind_g == 1: # gate will be a and b            
-                self.vertices[faces_init.a].retriangulation_type = -1
-                self.vertices[faces_init.b].retriangulation_type = 1
-                init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
-            elif ind_g == 2: # gate will be b and c
-                self.vertices[faces_init.b].retriangulation_type = -1
-                self.vertices[faces_init.c].retriangulation_type = 1
-                init_gate_decimating = [self.vertices[faces_init.b],self.vertices[faces_init.c]] # creation of the first gate
-            elif ind_g == 3: # gate will be c and a                
-                self.vertices[faces_init.c].retriangulation_type = -1
-                self.vertices[faces_init.a].retriangulation_type = 1
-                init_gate_decimating = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
-            else:
-                raise Exception("Unexpected value for ind_g {}".format(ind_g))
-            print(f"Decimating {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {ind_4_inds_g}")
-            ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2) # Increasing by one the index for index of gate, but ensuring to stay in border (>2 => =0)
-            self.gate = deque()
-            self.gate.append(init_gate_decimating)
+        try:
+            init_gate_decimating = []
+            save_model = self.clone()
+            self.increase_rd_seed()
+            self.ind_4_inds_f = -1   # Index to choose in list of index of faces
+            inds_f = random.sample(range(0,len(self.faces)),len(self.faces))   # List of index of faces, generated randomly (random.shuffle doesn't work on range object so use a sample)
+            cond_do_decimating = True
+            ind_4_inds_g = 0 # Index to choose in list of random integer that determind the gate choosen
+            
 
-            self.count = 0
-            # decimating_conquest
-            while len(self.gate) > 0 :
-                #print("decimating_conquest ",end="")
-                vertex_remove = self.decimating_conquest()
-
-                if vertex_remove == "Null_patch":
-                    output_val_A.append("Null_patch")
-                
-                elif vertex_remove :
-                    #self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
-                    output_val_A.append([vertex_remove.valence,vertex_remove.index])
-                    self.retriangulation(vertex_remove)
-                    #self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
-                if self.presence_of_valence_of(2):
-                    #self.save_f_by_f('Fail/Fail_decimating_{}_try_{}_gate_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f,limit_value(ind_4_inds_g-1,0,2)))
-
-                    break
-            cond_do_decimating = self.presence_of_valence_of(2)
-        #if len(output_val_A)<100:
-        #    raise Exception("erreur etrange")        
-        self.save_f_by_f('Results_tests/After_Decimating_conquest.obj')
-        self.set_everything_to_free()
-        self.set_everything_to_zeros()
-        save_model = self.clone()
-        
-        cond_do_cleaning = True
-        self.random_seed += 1
-        random.seed(self.random_seed)
-        self.ind_4_inds_f = -1
-        ind_4_inds_g = 0
-        inds_f = random.sample(range(0,len(self.faces)),len(self.faces))
-        while cond_do_cleaning:
-            output_val_B = []
-            self.copy(save_model)
-            #print("Cleaning Conquest ",end="")
-            cond = False
-            while not cond:  # on cherche une face qui est visible
-                if ind_4_inds_g == 0:
-                    self.ind_4_inds_f += 1
-                    if self.ind_4_inds_f >= len(self.faces):
-                        raise Exception("No faces respect conditions for cleaning (self.ind_4_inds_f: {})".format(self.ind_4_inds_f))
-                
-                ind_f = inds_f[self.ind_4_inds_f]
-                faces_init = self.faces[ind_f]
-                ind_g = inds_g[ind_4_inds_g] 
+            while cond_do_decimating:
+                output_val_A = [] 
+                self.copy(save_model)
+                #print("Decimating Conquest ",end="")
+                cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
+                while not cond:     #on cherche une face qui est visible
+                    self.ind_4_inds_f += 1 # Increasing the index for choosing random index of face
+                    
+                    self.increase_rd_seed() # Modify seed to ensure different shuffle
+                    random.shuffle(inds_g)  # Shuffling order of gates
+                    if self.ind_4_inds_f >= len(self.faces): # If too big, all face index has been tested
+                        raise None_respect_cond("decimating")
+                    ind_f = inds_f[self.ind_4_inds_f]  # Choosing the index of face
+                    faces_init = self.faces[ind_f] # Take the face
+                    cond = faces_init.visible           # Condition for decimating: a face that is visible, be present in the model
+                ind_g = inds_g[ind_4_inds_g]    # Choose index gate
                 if ind_g == 1: # gate will be a and b            
-                    init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+                    self.vertices[faces_init.a].retriangulation_type = -1
+                    self.vertices[faces_init.b].retriangulation_type = 1
+                    init_gate_decimating = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
                 elif ind_g == 2: # gate will be b and c
-                    init_gate_cleaning = [self.vertices[faces_init.b],self.vertices[faces_init.c]] # creation of the first gate
+                    self.vertices[faces_init.b].retriangulation_type = -1
+                    self.vertices[faces_init.c].retriangulation_type = 1
+                    init_gate_decimating = [self.vertices[faces_init.b],self.vertices[faces_init.c]] # creation of the first gate
                 elif ind_g == 3: # gate will be c and a                
-                    init_gate_cleaning = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
+                    self.vertices[faces_init.c].retriangulation_type = -1
+                    self.vertices[faces_init.a].retriangulation_type = 1
+                    init_gate_decimating = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
                 else:
                     raise Exception("Unexpected value for ind_g {}".format(ind_g))
-                
-                ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2)
-                if faces_init.visible and not(len(init_gate_cleaning[0].faces) == 3 or len(init_gate_cleaning[1].faces) == 3):
-                    cond = True
-            print(f"Cleaning {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {limit_value(ind_4_inds_g-1,0,2)}") 
-            self.gate.append(init_gate_cleaning)
+                print(f"Decimating {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {ind_4_inds_g}")
+                ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2) # Increasing by one the index for index of gate, but ensuring to stay in border (>2 => =0)
+                self.gate = deque()
+                self.gate.append(init_gate_decimating)
 
-                
-            self.count = 0 
-            while len(self.gate) > 0 :
-                #print("cleaning_conquest ",end="")
-                
-                
-                vertex_remove = self.cleaning_conquest()
-                if vertex_remove == "Null_patch":
-                    output_val_B.append("Null_patch")
+                self.count = 0
+                # decimating_conquest
+                while len(self.gate) > 0 :
+                    #print("decimating_conquest ",end="")
+                    vertex_remove = self.decimating_conquest()
+
+                    if vertex_remove == "Null_patch":
+                        output_val_A.append("Null_patch")
                     
-                elif vertex_remove :
-                    output_val_B.append([vertex_remove.valence,vertex_remove.index])
-                    # self.save_f_by_f('Results_tests/before_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
-                    self.retriangulation_4_cleaning_conquest(vertex_remove)
-                    # self.save_f_by_f('Results_tests/after_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+                    elif vertex_remove :
+                        #self.save_f_by_f('Results_tests/before_decimating_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+                        output_val_A.append([vertex_remove.valence,vertex_remove.index])
+                        self.retriangulation(vertex_remove)
+                        #self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
+                    if self.presence_of_valence_of(2):
+                        #self.save_f_by_f('Fail/Fail_decimating_{}_try_{}_gate_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f,limit_value(ind_4_inds_g-1,0,2)))
 
-                if self.presence_of_valence_of(2):
-                    #self.save_f_by_f('Fail/Fail_cleaning_{}_try_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f))
-                    break
+                        break
+                cond_do_decimating = self.presence_of_valence_of(2)
+            #if len(output_val_A)<100:
+            #    raise Exception("erreur etrange")        
+            self.save_f_by_f('Results_tests/After_Decimating_conquest.obj')
+            self.set_everything_to_free()
+            self.set_everything_to_zeros()
+        except None_respect_cond:
+            return None
+        try:
+            save_model = self.clone()        
+            cond_do_cleaning = True
+            self.random_seed += 1
+            random.seed(self.random_seed)
+            self.ind_4_inds_f = -1
+            ind_4_inds_g = 0
+            inds_f = random.sample(range(0,len(self.faces)),len(self.faces))
+            while cond_do_cleaning:
+                output_val_B = []
+                self.copy(save_model)
+                #print("Cleaning Conquest ",end="")
+                cond = False
+                while not cond:  # on cherche une face qui est visible
+                    if ind_4_inds_g == 0:
+                        self.ind_4_inds_f += 1
+                        if self.ind_4_inds_f >= len(self.faces):
+                            raise None_respect_cond("decimating")
+                    
+                    ind_f = inds_f[self.ind_4_inds_f]
+                    faces_init = self.faces[ind_f]
+                    ind_g = inds_g[ind_4_inds_g] 
+                    if ind_g == 1: # gate will be a and b            
+                        init_gate_cleaning = [self.vertices[faces_init.a],self.vertices[faces_init.b]] # creation of the first gate
+                    elif ind_g == 2: # gate will be b and c
+                        init_gate_cleaning = [self.vertices[faces_init.b],self.vertices[faces_init.c]] # creation of the first gate
+                    elif ind_g == 3: # gate will be c and a                
+                        init_gate_cleaning = [self.vertices[faces_init.c],self.vertices[faces_init.a]] # creation of the first gate
+                    else:
+                        raise Exception("Unexpected value for ind_g {}".format(ind_g))
+                    
+                    ind_4_inds_g = limit_value(ind_4_inds_g+1,0,2)
+                    if faces_init.visible and not(len(init_gate_cleaning[0].faces) == 3 or len(init_gate_cleaning[1].faces) == 3):
+                        cond = True
+                print(f"Cleaning {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {limit_value(ind_4_inds_g-1,0,2)}") 
+                self.gate.append(init_gate_cleaning)
 
-            print("\nind_f: {}".format(ind_f))
-            cond_do_cleaning = self.presence_of_valence_of(2)
+                    
+                self.count = 0 
+                while len(self.gate) > 0 :
+                    #print("cleaning_conquest ",end="")
+                    
+                    
+                    vertex_remove = self.cleaning_conquest()
+                    if vertex_remove == "Null_patch":
+                        output_val_B.append("Null_patch")
+                        
+                    elif vertex_remove :
+                        output_val_B.append([vertex_remove.valence,vertex_remove.index])
+                        # self.save_f_by_f('Results_tests/before_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+                        self.retriangulation_4_cleaning_conquest(vertex_remove)
+                        # self.save_f_by_f('Results_tests/after_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
+
+                    if self.presence_of_valence_of(2):
+                        #self.save_f_by_f('Fail/Fail_cleaning_{}_try_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f))
+                        break
+
+                print("\nind_f: {}".format(ind_f))
+                cond_do_cleaning = self.presence_of_valence_of(2)
+        except None_respect_cond:
+            output_val_B = []
+            # Maybe change this output, but the idea is to retry a decimating even if the cleaning doesn't work: a decimating can occur without cleaning after, but a cleaning can't without decimating change
         self.print_count_valencies()
         self.save_f_by_f('Results_tests/After_Cleaning_conquest.obj')
         decimating_output = Decimating_output(self.nb_decimate,init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
@@ -613,8 +636,13 @@ class Decimater(obja.Model):
         while self.nb_decimate<nb_max_iteration :
             self.nb_decimate += 1
             print(f"{self.nb_decimate}ieme decimation")
-
-            decimating_output.append(self.decimateAB())
+            output = self.decimateAB()
+            if output:
+                decimating_output.append(output)
+            else:
+                print(f"Stop decimating at {self.nb_decimate}ieme decimation, no decimating conquest works")
+                break
+            
 
             self.save_f_by_f(f'Results_tests/Decimate{self.nb_decimate}.obj')
             self.set_everything_to_free()
