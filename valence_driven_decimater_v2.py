@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import random
 from collections import deque
-from reconstruction import Reconstructer
+from reconstruction_v2 import Reconstructer
 from utility import limit_value
 import copy
 
@@ -98,21 +98,22 @@ class Decimater(obja.Model):
         self.coloring_vertex_all_similar([0.5,0.5,0.5])
         c_gate[0].coloring_vertex([0,1,0])
         c_gate[1].coloring_vertex([0,0,1])
-        front_face_information[3].coloring_vertex([1,0,0])        
-        #self.save_f_by_f('Results_tests/cleaning_conquest_{}.obj'.format(self.count))
+        front_face_information[3].coloring_vertex([1,0,0]) 
+        self.count += 1       
+        self.save_f_by_f('Results_tests/cleaning_conquest_{}.obj'.format(self.count))
 
         #self.save_selected_f('Results_tests/face_cleaning_conquest_{}.obj'.format(self.count),
         #                     [front_face_information[0]])
-        self.count += 1
+        
         #print("Front face state:{}".format(front_face.state))
         # if its front face is tagged conquered or to be removed
         if front_face.state == obja.State.Conquered or front_face.state == obja.State.To_be_removed:
-            #print(f"Itération cleaning {self.count}, pass")
+            print(f"Itération cleaning {self.count}, pass")
             return None
 
 
         elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free   :
-            #print(f"Itération cleaning {self.count}, valence 3")
+            print(f"Itération cleaning {self.count}, valence 3")
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
             
@@ -126,7 +127,6 @@ class Decimater(obja.Model):
 
             # Create two intermediare gates
             intermediaire_gates = [ [face_up_right[3], c_gate[1]] , [face_up_left[3], face_up_right[3]] ]
-
             # find the other gates 
             for gate in intermediaire_gates:
                 gate[0].state = obja.State.Conquered
@@ -137,23 +137,26 @@ class Decimater(obja.Model):
                 new_gates = [[f[3].index,f[2].index], [f[1].index, f[3].index]]
 
                 # Add the new gates to the queue
+                
+             
                 for gate in new_gates:
                     self.vertices[gate[0]].state = obja.State.Conquered 
                     self.vertices[gate[1]].state = obja.State.Conquered
                     self.gate.append(gate)
                 self.faces[f[0]].state = obja.State.Conquered
+
+                
             
             front_vertex.state = obja.State.To_be_removed
             return Vertex_removed(front_vertex,c_gate)
 
         elif front_vertex.state == obja.State.Free or front_vertex.state == obja.State.Conquered :
-            #print(f"Itération cleaning {self.count}, null_patch")
+            print(f"Itération cleaning {self.count}, null_patch")
             # Mark the front face as conquered
             front_face.state = obja.State.Conquered
 
             # creates the 2 new gate 
             new_gates = [[front_face_information[3].index,front_face_information[2].index],[front_face_information[1].index,front_face_information[3].index]]
-
             # add the gates to the fifo
             for gate in new_gates:
                 self.vertices[gate[0]].state = obja.State.Conquered 
@@ -202,6 +205,7 @@ class Decimater(obja.Model):
         # Creating faces
         self.create_face([self.vertices[border_patch[0]].index,self.vertices[border_patch[1]].index,self.vertices[border_patch[2]].index])
         vertex_infos.visible = False
+        return border_patch
 
            
  
@@ -401,8 +405,14 @@ class Decimater(obja.Model):
         return border_patch
 
 
-    def manifold(border_patch):
-        return None
+    def manifold(self,border_patch):
+        try :
+            for i in range(1,len(border_patch)-1):
+                self.gate_to_face(self.vertices[border_patch[i]], self.vertices[border_patch[i+1]])
+                self.gate_to_face(self.vertices[border_patch[i+1]], self.vertices[border_patch[i]])
+            return True
+        except obja.NotGate2Face :
+            return False
         
 
     def protocol_null_patch(self,output_val_A,c_gate):
@@ -471,8 +481,9 @@ class Decimater(obja.Model):
                 vertex_remove = Vertex_removed(front_vertex,c_gate)
                 border_patch = self.retriangulation(vertex_remove)
 
-                if self.presence_of_valence_of(2):
+                if self.presence_of_valence_of(2) or not(self.manifold(border_patch)):
                     print(f"Itération decimating {self.count}, retriangulation to null_patch")
+                    print(self.manifold(border_patch))
                     self.copy(save_model)
                     self.gate = save_gate.copy()
                     c_gate = [self.vertices[c_gate[0].index], self.vertices[c_gate[1].index]]
@@ -499,7 +510,7 @@ class Decimater(obja.Model):
         inds_g = [1,2,3]
         cond = True
         while cond:
-            index = random.randint(0, len(self.faces))
+            index = random.randint(0, len(self.faces)-1)
             faces_init = self.faces[index]
             init_gate_decimating = [faces_init.a,faces_init.b]
             if self.vertices[init_gate_decimating[0]].visible == True and self.vertices[init_gate_decimating[1]].visible == True:
@@ -516,6 +527,7 @@ class Decimater(obja.Model):
         self.set_everything_to_zeros()
 
         try:
+            
             save_model = self.clone()          
             cond_do_cleaning = True
             self.random_seed += 1
@@ -526,6 +538,7 @@ class Decimater(obja.Model):
             while cond_do_cleaning:
                 self.set_everything_to_free()
                 self.set_everything_to_zeros()  
+                ismanifold = True
                 output_val_B = []
                 self.copy(save_model)
                 #print("Cleaning Conquest ",end="")
@@ -567,16 +580,16 @@ class Decimater(obja.Model):
                     elif vertex_remove :
                         output_val_B.append([vertex_remove.valence,vertex_remove.index])
                         # self.save_f_by_f('Results_tests/before_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
-                        self.retriangulation_4_cleaning_conquest(vertex_remove)
+                        border_patch = self.retriangulation_4_cleaning_conquest(vertex_remove)
                         # self.save_f_by_f('Results_tests/after_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
-
-                    if self.presence_of_valence_of(2):
-                        print("val 2 dans cleaning")
-                        #self.save_f_by_f('Fail/Fail_cleaning_{}_try_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f))
-                        break
+                        ismanifold = self.manifold(border_patch)
+                        if self.presence_of_valence_of(2) or not(ismanifold):
+                            print("val 2 dans cleaning")
+                            #self.save_f_by_f('Fail/Fail_cleaning_{}_try_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f))
+                            break
 
                 print("\nind_f: {}".format(ind_f))
-                cond_do_cleaning = False
+                cond_do_cleaning = self.presence_of_valence_of(2) or not(ismanifold)
         except None_respect_cond:
             output_val_B = []
             # Maybe change this output, but the idea is to retry a decimating even if the cleaning doesn't work: a decimating can occur without cleaning after, but a cleaning can't without decimating change
@@ -629,16 +642,15 @@ def main():
     np.seterr(invalid = 'raise')
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
-    #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
+    model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     #model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
     #model.parse_file('example/Icosphere_2562_vertices.obj')
-    model.parse_file('example/bunny_bis.obj')
+    #model.parse_file('example/bunny_bis.obj')
     #model.decimateAB()d
     model.print_count_valencies()
-    decimating_output = model.decimate(200,10)
+    decimating_output = model.decimate(9,10)
     model.save_f_by_f('Results_tests/DecimateAB_fandisk.obj')
-
-
+    #raise Exception ("stop")
     reco = Reconstructer(True)
     reco.copy(model)
     reconstruction = reco.reconstruction(decimating_output)
