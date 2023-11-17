@@ -390,6 +390,7 @@ class Reconstructer(obja.Model):
 
         for i in range (nb_it):
             print(f"Itération AB:{i}")
+            self.save_f_by_f('Results_tests/befor_reconquest_{}.obj'.format(i))
             
             self.count = 0
 
@@ -409,7 +410,10 @@ class Reconstructer(obja.Model):
             self.gate.append(init_gate)
             self.vertices[self.gate[0][0]].retriangulation_type = -1
             self.vertices[self.gate[0][1]].retriangulation_type = 1
-            self.cleaning_reconquest(output_B)
+            if len(output_B)>0:
+                self.cleaning_reconquest(output_B)
+            else:
+                self.gate.popleft()
             self.save_f_by_f('Results_tests/after_cleaning_reconquest_{}.obj'.format(i))
 
             self.set_everything_to_free()

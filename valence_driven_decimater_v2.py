@@ -100,7 +100,7 @@ class Decimater(obja.Model):
         c_gate[1].coloring_vertex([0,0,1])
         front_face_information[3].coloring_vertex([1,0,0]) 
         self.count += 1       
-        self.save_f_by_f('Results_tests/cleaning_conquest_{}.obj'.format(self.count))
+        #self.save_f_by_f('Results_tests/cleaning_conquest_{}.obj'.format(self.count))
 
         #self.save_selected_f('Results_tests/face_cleaning_conquest_{}.obj'.format(self.count),
         #                     [front_face_information[0]])
@@ -485,6 +485,7 @@ class Decimater(obja.Model):
                     print(f"Itération decimating {self.count}, retriangulation to null_patch")
                     print(self.manifold(border_patch))
                     self.copy(save_model)
+                    print(self.manifold(border_patch))
                     self.gate = save_gate.copy()
                     c_gate = [self.vertices[c_gate[0].index], self.vertices[c_gate[1].index]]
                     output_val_A = self.protocol_null_patch(output_val_A,c_gate)
@@ -507,6 +508,7 @@ class Decimater(obja.Model):
     def decimateAB(self):
         # inititialisation 
         print("Decimating conquest")
+        self.save_f_by_f(f'Results_tests/before_Decimating_conquest_{self.nb_decimate}.obj')
         inds_g = [1,2,3]
         cond = True
         while cond:
@@ -541,7 +543,7 @@ class Decimater(obja.Model):
                 ismanifold = True
                 output_val_B = []
                 self.copy(save_model)
-                #print("Cleaning Conquest ",end="")
+                print("Cleaning Conquest ",end="")
                 cond = False
                 while not cond:  # on cherche une face qui est visible
                     if ind_4_inds_g == 0:
@@ -584,7 +586,8 @@ class Decimater(obja.Model):
                         # self.save_f_by_f('Results_tests/after_cleaning_conquest_{}_{}.obj'.format(self.nb_decimate,self.count))
                         ismanifold = self.manifold(border_patch)
                         if self.presence_of_valence_of(2) or not(ismanifold):
-                            print("val 2 dans cleaning")
+                            # print("val 2 dans cleaning")
+                            # print(ismanifold)
                             #self.save_f_by_f('Fail/Fail_cleaning_{}_try_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f))
                             break
 
@@ -594,7 +597,7 @@ class Decimater(obja.Model):
             output_val_B = []
             # Maybe change this output, but the idea is to retry a decimating even if the cleaning doesn't work: a decimating can occur without cleaning after, but a cleaning can't without decimating change
         self.print_count_valencies()
-        self.save_f_by_f('Results_tests/After_Cleaning_conquest.obj')
+        self.save_f_by_f(f'Results_tests/After_Cleaning_conquest_{self.nb_decimate}.obj')
         decimating_output = Decimating_output(self.nb_decimate,init_gate_decimating,init_gate_cleaning,output_val_A,output_val_B)
         return decimating_output
     
@@ -642,14 +645,15 @@ def main():
     np.seterr(invalid = 'raise')
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
-    model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
-    #model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
+    #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
+    model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
     #model.parse_file('example/Icosphere_2562_vertices.obj')
     #model.parse_file('example/bunny_bis.obj')
     #model.decimateAB()d
     model.print_count_valencies()
-    decimating_output = model.decimate(9,10)
-    model.save_f_by_f('Results_tests/DecimateAB_fandisk.obj')
+
+    decimating_output = model.decimate(50,10)
+    model.save_f_by_f('Results_tests/Decimate_completed.obj')
     #raise Exception ("stop")
     reco = Reconstructer(True)
     reco.copy(model)

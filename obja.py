@@ -82,7 +82,8 @@ class Face:
 
     def __repr__(self):
         return str(self)
-
+    def equality_content(self,other):
+        return self.a == other.a and self.b == other.b and self.c == other.c
 
 class VertexError(Exception):
     """
@@ -210,6 +211,9 @@ class Vertex:
     
     def equality(self,other):
         return self.index == other.index
+    def equality_content(self,other):
+        return np.array_equal(self.coordinates, other.coordinates) and self.state == other.state and self.retriangulation_type == other.retriangulation_type and len(self.faces) == len(other.faces)
+        
 
 class Model:
     """
@@ -388,6 +392,27 @@ class Model:
             self.faces.append(face.clone())
         return self
     
+    def equal(self,other):
+        if self.line != other.line:
+            return False
+        for vertex_self in self.vertices:
+            match_pass = False
+            if len(vertex_self.faces) > 0:
+                for vertex_other in other.vertices:
+                    match_pass = match_pass or vertex_self.equality_content(vertex_other)
+            if not(match_pass):
+                return False
+        for face_self in self.faces:
+            match_pass = False
+            if face_self.visible:
+                for face_other in other.faces:
+                    if face_other.visible:
+                        match_pass = match_pass or face_self.equality_content(face_other)
+            if not(match_pass):
+                return False
+        return True
+        
+
     def presence_of_valence_of(self,valency):
         for vertex in self.vertices:
             if len(vertex.faces)==valency:
@@ -667,10 +692,10 @@ class Model:
             #self.print_gate_index()
 
         # Check if the new gate is different from the initial gate to avoid infinite recursion
-        if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<10 :
+        if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<20 :
             #print("Different new than init => continue")
             self.find_the_gate_index(vertice_center,new_gate, init_gate,count)
-        if count>=10:
+        if count>=20:
             self.save_f_by_f('Results_tests/problem_find_gate.obj')
             raise Exception("ça tourne en boucle")
         
@@ -678,26 +703,34 @@ class Model:
     def gate_to_face(self, gate_vertex1, gate_vertex2):
         # Visit all faces from the 1st vertex to see if any face is shared in the right order with the 2nd vertex
         # Return the face index and the three vertices of the face that have the gate, and a value indicating the position of the third vertex (1 for a, 2 for b and 3 for c)
+        return_component = []
+        counting = 0
         for index_face in gate_vertex1.faces:
             if self.faces[index_face].a == gate_vertex1.index and self.faces[index_face].b == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c],3]
+                return_component = [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].c],3]
+                counting += 1
             elif self.faces[index_face].b == gate_vertex1.index and self.faces[index_face].c == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a],1]
+                return_component = [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].a],1]
+                counting += 1
             elif self.faces[index_face].c == gate_vertex1.index and self.faces[index_face].a == gate_vertex2.index:
-                return [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]
+                return_component = [index_face,gate_vertex1,gate_vertex2,self.vertices[self.faces[index_face].b],2]
+                counting += 1
+        if counting == 1:
+            return return_component
+        else:
+            self.print_single_vertex(gate_vertex1.index)
+            self.print_single_vertex(gate_vertex2.index)
+            print(counting)
 
-        self.print_single_vertex(gate_vertex1.index)
-        self.print_single_vertex(gate_vertex2.index)
-
-        # self.print_single_face(528)
-        self.print_count_valencies()
-        self.coloring_vertex_all_similar([0.5,0.5,0.5])
-        self.vertices[gate_vertex1.index].coloring_vertex([1,0,0])
-        self.vertices[gate_vertex2.index].coloring_vertex([0,1,0])
-        # self.vertices[250].coloring_vertex([1,0,0])
-        self.save_f_by_f('Results_tests/echec_find_gate.obj')
-        #self.print_faces()
-        raise NotGate2Face(gate_vertex1.index,gate_vertex2.index)
+            # self.print_single_face(528)
+            self.print_count_valencies()
+            self.coloring_vertex_all_similar([0.5,0.5,0.5])
+            self.vertices[gate_vertex1.index].coloring_vertex([1,0,0])
+            self.vertices[gate_vertex2.index].coloring_vertex([0,1,0])
+            # self.vertices[250].coloring_vertex([1,0,0])
+            self.save_f_by_f('Results_tests/echec_find_gate.obj')
+            #self.print_faces()
+            raise NotGate2Face(gate_vertex1.index,gate_vertex2.index)
     
     def create_face(self,indices):
         face = Face.from_array_num(indices)
