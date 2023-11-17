@@ -162,7 +162,27 @@ class UnknownInstruction(Exception):
         Pretty prints the error.
         """
         return f'Instruction {self.instruction} unknown (line {self.line})'
+class FindGateLooping(Exception):
+    def __init__(self):
+        super().__init__()
 
+    def __str__(self):
+        """
+        Pretty prints the error.
+        """
+        return f"Find gate looping"
+
+class NotGate2Face(Exception):
+    def __init__(self, gate1, gate2):
+        self.gate1 = gate1
+        self.gate2 = gate2
+        super().__init__()
+    def __str__(self):
+        """
+        Pretty prints the error.
+        """
+        return "The two vertex given (index {} and {}) doesn't correspond to a gate.".format(self.gate1,
+                                                                                   self.gate2)
 class Vertex:
     def __init__(self,index,coordinates,face = [],state=State.Free,retriangulation_type=0,visible=True,color=None):
         self.index = index
@@ -374,6 +394,13 @@ class Model:
                 return True
         return False
 
+    def face_same_vertex_2_times(self):
+        for face in self.faces:
+            if face.visible:
+                if face.a == face.b or face.a == face.c or face.b == face.c:
+                    return True
+        return False
+
 
     # Function to save the model into a obja file by doing faces by faces
     def save_f_by_f(self, output_name):
@@ -539,13 +566,13 @@ class Model:
 
     def triangulation_null_patch(self,index0,index1,index_front_vertex):
         if (self.vertices[index0].retriangulation_type==1) and (self.vertices[index1].retriangulation_type==-1):
-                self.vertices[index_front_vertex].retriangulation_type=1
+            self.vertices[index_front_vertex].retriangulation_type=1
         elif (self.vertices[index0].retriangulation_type==-1) and (self.vertices[index1].retriangulation_type==1):
-                self.vertices[index_front_vertex].retriangulation_type=1
+            self.vertices[index_front_vertex].retriangulation_type=1
         elif (self.vertices[index0].retriangulation_type==1) and (self.vertices[index1].retriangulation_type==1):
-                self.vertices[index_front_vertex].retriangulation_type=-1
+            self.vertices[index_front_vertex].retriangulation_type=-1
         elif (self.vertices[index0].retriangulation_type==-1) and (self.vertices[index1].retriangulation_type==-1):
-                self.vertices[index_front_vertex].retriangulation_type=1
+            self.vertices[index_front_vertex].retriangulation_type=1
         else : 
             raise Exception("Unexpected retriangulation_type for null_patch")  
 
@@ -575,6 +602,7 @@ class Model:
             current_gate = init_gate
         
         # find the next_gate
+        #print(f"Count {count}: current gate {current_gate[1].index} (1) {current_gate[0].index} (0), vertice_center {vertice_center.index}")
         #self.print_single_vertex(current_gate[0].index)
         #self.print_single_vertex(current_gate[1].index)
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
@@ -597,7 +625,7 @@ class Model:
             self.find_the_gate(vertice_center,new_gate, init_gate,count)
         if count>=10:
             self.save_f_by_f('Results_tests/problem_find_gate.obj')
-            raise Exception("ça tourne en boucle")
+            raise FindGateLooping()
         
 
     def find_the_gate_index(self, vertice_center,current_gate, init_gate = None ,count = 0):
@@ -669,7 +697,7 @@ class Model:
         # self.vertices[250].coloring_vertex([1,0,0])
         self.save_f_by_f('Results_tests/echec_find_gate.obj')
         #self.print_faces()
-        raise Exception("The two vertex given (index {} and {}) doesn't correspond to a gate.".format(gate_vertex1.index,gate_vertex2.index))
+        raise NotGate2Face(gate_vertex1.index,gate_vertex2.index)
     
     def create_face(self,indices):
         face = Face.from_array_num(indices)
