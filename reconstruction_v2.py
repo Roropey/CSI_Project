@@ -7,6 +7,7 @@ class Reconstructer(obja.Model):
 
     def __init__(self,reset_color=False,output_name='.\Output_reconstruction.obja'):
         super().__init__()
+        self.nbdecimate = 0
         self.deleted_faces = set()
         self.gate = deque()
         self.list_removed = []
@@ -33,11 +34,23 @@ class Reconstructer(obja.Model):
 
             self.count += 1
 
-            #self.coloring_vertex_all_similar([0.5,0.5,0.5])
+            self.coloring_vertex_all_similar([0.5,0.5,0.5])
+            if self.vertices[c_gate[0]].retriangulation_type == 1:
+                self.vertices[c_gate[0]].coloring_vertex([1,0,0])
+            else:
+                self.vertices[c_gate[0]].coloring_vertex([0,1,0])
+            if self.vertices[c_gate[1]].retriangulation_type == 1:
+                self.vertices[c_gate[1]].coloring_vertex([1,0,0])
+            else:
+                self.vertices[c_gate[1]].coloring_vertex([0,1,0])
             #self.vertices[c_gate[0]].coloring_vertex([1,0,0])
             #self.vertices[c_gate[1]].coloring_vertex([0,1,0])
-            #front_face_information[3].coloring_vertex([1,0,0])
-            #self.save_f_by_f('Results_tests/re_decimating_conquest_{}_before.obj'.format(self.count))
+            front_face_information[3].coloring_vertex([0,0,1])
+
+            #self.coloring_vertex_based_type_retriang()
+            #self.save_f_by_f('Results_tests/decimating_conquest_{}_{}_B_before.obj'.format(self.nbdecimate,self.count))
+
+            
             #self.save_selected_f('Results_tests/face_gate_decimating_{}.obj'.format(self.count),[front_face_information[0]])
             
             # if its front face is tagged conquered 
@@ -48,8 +61,12 @@ class Reconstructer(obja.Model):
             #elif  valence <= 6
             elif output_val[compte][0] in [3,4,5,6]: 
                 #print(f"Itération decimating reconstruction {self.count}, compte {compte} retriangulation {output_val[compte][0]}")
+                
                 self.retriangulation(output_val[compte],[self.vertices[c_gate[0]],self.vertices[c_gate[1]]])
-                #self.save_f_by_f('Results_tests/re_decimating_conquest_{}_retriangulation.obj'.format(self.count))
+                self.coloring_vertex_all_similar([0.5,0.5,0.5])
+                self.vertices[c_gate[0]].coloring_vertex([1,0,0])
+                self.vertices[c_gate[1]].coloring_vertex([0,1,0])
+                #self.save_f_by_f('Results_tests/decimating_conquest_{}_{}_B_retriangulation.obj'.format(self.nbdecimate,self.count))
                
                 front_face_information = self.gate_to_face(self.vertices[c_gate[0]],self.vertices[c_gate[1]])
                 front_vertex = front_face_information[3]
@@ -112,7 +129,7 @@ class Reconstructer(obja.Model):
 
             # if its front face is tagged conquered
             if front_face.state == obja.State.Conquered:
-                print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} pass")
+                #print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} pass")
                 pass
 
             elif output[compte][0] == 3:
@@ -160,7 +177,7 @@ class Reconstructer(obja.Model):
 
             # else Null_patch
             elif output[compte] == "Null_patch":
-                print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} Null_patch")
+                #print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} Null_patch")
                 
                 # Mark the front face as conquered
                 front_face.state = obja.State.Conquered
@@ -243,7 +260,10 @@ class Reconstructer(obja.Model):
         info_face_1 = self.gate_to_face(self.vertices[border_patch[0]],self.vertices[border_patch[1]])
         face_existing.append((info_face_1[0],info_face_1[4]))
         border_patch.append(info_face_1[3].index)
-        self.vertices[border_patch[2]].retriangulation_type = 1
+        if self.vertices[border_patch[0]].retriangulation_type == 1 and self.vertices[border_patch[1]].retriangulation_type == 1 and valence == 3:
+            self.vertices[border_patch[2]].retriangulation_type = -1
+        else:
+            self.vertices[border_patch[2]].retriangulation_type = 1
         if valence == 3:
             face_existing.append(None)
             face_existing.append(None)
@@ -387,9 +407,9 @@ class Reconstructer(obja.Model):
         print(nb_it)
         decimating_output.reverse()
         self.init_mode()
-
+        self.nbdecimate = nb_it
         for i in range (nb_it):
-            print(f"Itération AB:{i}")
+            print(f"Itération AB:{self.nbdecimate}")
             self.save_f_by_f('Results_tests/befor_reconquest_{}.obj'.format(i))
             
             self.count = 0
@@ -433,6 +453,8 @@ class Reconstructer(obja.Model):
             print(f"decimating reconquest: {len(output_A)}")
             self.decimating_reconquest(output_A)
             self.save_f_by_f('Results_tests/after_decimating_reconquest_{}.obj'.format(i))
+
+            self.nbdecimate = self.nbdecimate - 1
             
         return None
 
