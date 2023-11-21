@@ -114,7 +114,7 @@ class Decimater(obja.Model):
 
 
         elif len(front_vertex.faces) == 3 and front_vertex.state == obja.State.Free   :
-            print(f"Itération cleaning {self.count}, valence 3")
+            #print(f"Itération cleaning {self.count}, valence 3")
             # Mark the front face for removal
             front_face.state = obja.State.To_be_removed
             
@@ -246,7 +246,9 @@ class Decimater(obja.Model):
                     not_breaking = False
                     break
             if not_breaking:
-                self.save_f_by_f('Results_tests/echec_triangulation.obj')
+                self.coloring_vertex_all_similar([0.5,0.5,0.5])
+                self.coloring_list_vertices(border_patch,[1,0,0])
+                self.save_f_by_f('Results_tests/border_batch_problem.obj')
                 raise Exception("Not found next vertex in the chain around")
                 
         if len(border_patch) != vertex_to_be_removed.valence + 2:   
@@ -509,7 +511,6 @@ class Decimater(obja.Model):
         return output_val_A
 
     def decimating_conquest(self):
-        print("start decimating")
         self.count = 0
         output_val_A = []
 
@@ -547,7 +548,7 @@ class Decimater(obja.Model):
 
             #elif the front vertex is free and has a valence <= 6
             elif front_vertex.state == obja.State.Free and len(front_vertex.faces)<=6:
-                print(f"Itération decimating {self.count}, retriangulation {len(front_vertex.faces)}")
+                #print(f"Itération decimating {self.count}, retriangulation {len(front_vertex.faces)}")
                 save_model = self.clone()
                 save_gate = self.gate.copy()
                 # The front vertex is flagged to be removed and its incident faces are flagged to be removed.
@@ -600,16 +601,46 @@ class Decimater(obja.Model):
 
     def decimateAB(self):
         # inititialisation 
-        print("Decimating conquest")
+        
         #self.save_f_by_f(f'Results_tests/before_Decimating_conquest_{self.nb_decimate}.obj')
         inds_g = [1,2,3]
-        cond = True
-        while cond:
-            index = random.randint(0, len(self.faces)-1)
-            faces_init = self.faces[index]
-            init_gate_decimating = [faces_init.a,faces_init.b]
-            if self.vertices[init_gate_decimating[0]].visible == True and self.vertices[init_gate_decimating[1]].visible == True:
-                cond = False
+        self.increase_rd_seed()
+        self.ind_4_inds_f = -1   # Index to choose in list of index of faces
+        inds_f = random.sample(range(0,len(self.faces)),len(self.faces))   # List of index of faces, generated randomly (random.shuffle doesn't work on range object so use a sample)
+        prepare_gate_decimating = True
+        ind_4_inds_g = 0 # Index to choose in list of random integer that determind the gate choosen
+        
+        while prepare_gate_decimating:
+            output_val_A = [] 
+            #self.copy(save_model)
+            cond = ind_4_inds_g != 0 # Condition to find a new face: the index for the gate has made a loop (from 0 to 2)
+            while not cond:     #on cherche une face qui est visible
+                self.ind_4_inds_f += 1 # Increasing the index for choosing random index of face
+                self.increase_rd_seed() # Modify seed to ensure different shuffle
+                random.shuffle(inds_g)  # Shuffling order of gates
+                if self.ind_4_inds_f >= len(self.faces): # If too big, all face index has been tested
+                    raise None_respect_cond("decimating")
+                ind_f = inds_f[self.ind_4_inds_f]  # Choosing the index of face
+                faces_init = self.faces[ind_f] # Take the face
+                cond = faces_init.visible           # Condition for decimating: a face that is visible, be present in the model
+            ind_g = inds_g[ind_4_inds_g]    # Choose index gate
+            if ind_g == 1 and self.vertices[faces_init.a].visible and self.vertices[faces_init.b].visible: # gate will be a and b            
+                self.vertices[faces_init.a].retriangulation_type = -1
+                self.vertices[faces_init.b].retriangulation_type = 1
+                init_gate_decimating = [faces_init.a,faces_init.b] # creation of the first gate
+                prepare_gate_decimating = False
+            elif ind_g == 2 and self.vertices[faces_init.b].visible and self.vertices[faces_init.c].visible: # gate will be b and c
+                self.vertices[faces_init.b].retriangulation_type = -1
+                self.vertices[faces_init.c].retriangulation_type = 1
+                init_gate_decimating = [faces_init.b,faces_init.c] # creation of the first gate
+                prepare_gate_decimating = False
+            elif ind_g == 3 and self.vertices[faces_init.c].visible and self.vertices[faces_init.a].visible: # gate will be c and a                
+                self.vertices[faces_init.c].retriangulation_type = -1
+                self.vertices[faces_init.a].retriangulation_type = 1
+                init_gate_decimating = [faces_init.c,faces_init.a] # creation of the first gate
+                prepare_gate_decimating = False
+        
+        print(f"Decimating {self.nb_decimate}, try {self.ind_4_inds_f}/{len(self.faces)}, gate {ind_4_inds_g}")
         self.vertices[init_gate_decimating[0]].retriangulation_type = -1
         self.vertices[init_gate_decimating[1]].retriangulation_type = 1
 
@@ -636,7 +667,6 @@ class Decimater(obja.Model):
                 ismanifold = True
                 output_val_B = []
                 self.copy(save_model)
-                print("Cleaning Conquest ",end="")
                 cond = False
                 while not cond:  # on cherche une face qui est visible
                     if ind_4_inds_g == 0:
@@ -780,7 +810,7 @@ def main():
     decimating_output = model.decimate(4,500)
     model.save_f_by_f('Results_tests/Decimate_completed.obj')
     #
-    reco = Reconstructer(True)
+    reco = Reconstructer(True,True)
     reco.copy(model)
     reconstruction = reco.reconstruction(decimating_output)
     reco.file.close()

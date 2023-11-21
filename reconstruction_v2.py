@@ -5,7 +5,7 @@ import random
 
 class Reconstructer(obja.Model):
 
-    def __init__(self,reset_color=False,output_name='.\Output_reconstruction.obja'):
+    def __init__(self,coloring=True,reset_color=False,output_name='.\Output_reconstruction.obja'):
         super().__init__()
         self.nbdecimate = 0
         self.deleted_faces = set()
@@ -14,7 +14,8 @@ class Reconstructer(obja.Model):
         #with as output:
         self.file = open(output_name, 'w')
         self.output = obja.Output(self.file , random_color=False)
-        self.reset_color = reset_color
+        self.coloring = coloring
+        self.reset_color = reset_color and coloring
         self.count = 0
         self.count_bis = 0
 
@@ -133,7 +134,7 @@ class Reconstructer(obja.Model):
                 pass
 
             elif output[compte][0] == 3:
-                print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} retriangulation")
+                #print(f"Itération cleaning reconstruction {self.count}, etat du output {compte} retriangulation")
 
                 self.retriangulation(output[compte],[self.vertices[c_gate[0]],self.vertices[c_gate[1]]])
 
@@ -232,7 +233,8 @@ class Reconstructer(obja.Model):
                 j = j - len(border_patch)
             index_face = self.create_face([border_patch[i], border_patch[j], vertex_to_be_added.index])
             self.output.add_face(index_face, self.faces[index_face])
-            self.output.color_face(index_face,color)
+            if self.coloring:
+                self.output.color_face(index_face,color)
         
 
     def retriangulation(self,output,gate):
