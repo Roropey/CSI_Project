@@ -9,48 +9,48 @@ This program is callable program to execute the implementation fully : from an i
 
 ### Arguments
 
-#### -it or --iterations
+###### -it or --iterations
 
 This arguments defined the maximum iteration number of decimating operations done to obtain the low resolution.
 An integer is expected. The default value is 1000.
 If the minimum number of vertices is reached before the maximum number of iteration, the decimation stopped.
 
-#### -minPts or --minimum_points
+###### -minPts or --minimum_points
 
 This arguments defined the minimum number of vertices expected for the low resolution model output of the decimation. 
 An integer is expected. The default value is 4.
 If the maximum iteration number is reached before, the decimation stopped. 
 The minimum vertices number is the maximum between this argument and the result of the minimum proportion argument.
 
-#### -minProp or --minimum_proportion
+###### -minProp or --minimum_proportion
 
 This arguments defined the minimum number of vertices of the low resolution decimation result model based on the original vertices number.
 A float is expected. The default value is None.
 If the maximum iteration number is reached before, the decimation stopped. 
 The minimum vertices number is the maximum between this argument time the original vertices number and the minimum point argument.
 
-#### -input or --input_model
+###### -input or --input_model
 
 This argument corresponds to the path to the input/original model to be decimated.
 A string is expected.
 
-#### -outputDecimate or --output_decimating
+###### -outputDecimate or --output_decimating
 
 This argument corresponds to the path or name of the low resolution model resulting from the decimation.
 Put nothing if not wanted because the default value is None.
 A string is expected.
 
-#### -outputRecreate or --output_recreating
+###### -outputRecreate or --output_recreating
 
 This argument corresponds to the path or name the reconstruction obja output that contains the reconstruction step.
 A string is expected. The default value is "Output_Recreate.obja".
 
-#### -colorintRecreating or --coloring_the_recreating
+###### -colorintRecreating or --coloring_the_recreating
 
 This argument is a boolean indicating if the obja output should contains patch coloration or not.
 A boolean is expected. The default value is True.
 
-#### -colorintRecreating or --coloring_the_recreating
+###### -colorintRecreating or --coloring_the_recreating
 
 This argument is a boolean indicating if at each recreating steps, the faces colors should be reset (put to white). Better to see the patch evolution at each step.
 A boolean is expected. The default value is True.
