@@ -410,7 +410,7 @@ class Reconstructer(obja.Model):
         self.nbdecimate = nb_it
         for i in range (nb_it):
             print(f"Itération AB:{self.nbdecimate}")
-            self.save_f_by_f('Results_tests/befor_reconquest_{}.obj'.format(i))
+            #self.save_f_by_f('Results_tests/befor_reconquest_{}.obj'.format(i))
             
             self.count = 0
 
@@ -434,7 +434,7 @@ class Reconstructer(obja.Model):
                 self.cleaning_reconquest(output_B)
             else:
                 self.gate.popleft()
-            self.save_f_by_f('Results_tests/after_cleaning_reconquest_{}.obj'.format(i))
+            #self.save_f_by_f('Results_tests/after_cleaning_reconquest_{}.obj'.format(i))
 
             self.set_everything_to_free()
             self.set_everything_to_zeros()
