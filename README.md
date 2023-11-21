@@ -1,6 +1,6 @@
 # Progressive Compression for Lossless Transmission of Triangle Meshes Implementation
 
-As a project for the courses Modélisation, Compression, Streaming, Interactions 3D of the formation Image et MultiMédia of Sciences du Numérique Department of ENSEEIHT school. This git deposit is based on the git deposit: https://gitea.tforgione.fr/tforgione/obja. This implementation has for goal to take a manifold 3D obj model to generate the decimation based on the paper "Progressive Compression for Lossless Transmission of Triangle Meshes". The decimation is implemented in valence_driven_decimater.py program and the reconstruction based on the decimation output and decimation model is done by reconstruction.py.
+As a project for the courses Modélisation, Compression, Streaming, Interactions 3D of the formation Image et MultiMédia of Sciences du Numérique Department of ENSEEIHT school, we have to implement a 3D object compression method for streaming. This git deposit is based on the git deposit: https://gitea.tforgione.fr/tforgione/obja. This implementation has for goal to take a manifold 3D obj model to generate the decimation based on the paper "Progressive Compression for Lossless Transmission of Triangle Meshes". The decimation is implemented in valence_driven_decimater.py program and the reconstruction based on the decimation output and decimation model is done by reconstruction.py.
 The reconstruction.py program produced an obja file that shows the reconstruction progression iterations.
 
 ## decimate_and_recreate.py
