@@ -766,7 +766,7 @@ class Decimater(obja.Model):
     def del_result(self):
         
 
-        dossier = "C:/Users/revei/OneDrive/Documents/GitHub/CSI_Project/Results_tests"
+        dossier = "./Results_tests"
 
         # Vérifier si le dossier existe
         if os.path.exists(dossier):
@@ -775,13 +775,17 @@ class Decimater(obja.Model):
 
             # Parcours la liste et supprime chaque fichier
             for fichier in fichiers:
-                chemin_fichier = os.path.join(dossier, fichier)
-                try:
-                    if os.path.isfile(chemin_fichier):
-                        os.remove(chemin_fichier)
-                        print(f"Fichier supprimé : {fichier}")
-                except Exception as e:
-                    print(f"Erreur lors de la suppression de {fichier}: {e}")
+                if len(fichier) > 11 and fichier[0:11] == 'DecimateAB_':
+                    pass
+                else:
+                    chemin_fichier = os.path.join(dossier, fichier)
+                    try:
+                        if os.path.isfile(chemin_fichier):
+                            
+                            os.remove(chemin_fichier)
+                            print(f"Fichier supprimé : {fichier}")
+                    except Exception as e:
+                        print(f"Erreur lors de la suppression de {fichier}: {e}")
         else:
             print(f"Le dossier {dossier} n'existe pas.")
 
