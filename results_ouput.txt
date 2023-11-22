@@ -1,5 +1,10 @@
-Fail bunny_bis
-Fail suzanne_bis
-Fail cow
-Fail fandisk
-Fail hippo
+Fail suzanne_bis at decimating
+Fail suzanne_bis at reconstruction
+Fail bunny_bis at decimating
+Fail bunny_bis at reconstruction
+Fail cow at decimating
+Fail cow at reconstruction
+Fail fandisk at decimating
+Fail fandisk at reconstruction
+Fail hippo at decimating
+Fail hippo at reconstruction
