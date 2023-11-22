@@ -742,24 +742,13 @@ class Decimater(obja.Model):
         count_point = self.count_point()
         print("Number of verticies: {}".format(count_point))
         decimating_output = []
-
+        
         while count_point>nb_point_end and self.nb_decimate<nb_max_iteration :
             self.nb_decimate += 1
 
             print(f"{self.nb_decimate}ieme decimation")
-            model_copy.copy(self)
-            try:
-                output = self.decimateAB()
-                if output:
-                    decimating_output.append(output)
-                else:
-                    print(f"Stop decimating at {self.nb_decimate}ieme decimation, no decimating conquest works")
-                    break
-            except:
-                self.copy(model_copy)
-                print(f"Stop decimating at {self.nb_decimate}ieme decimation, error")
-                break
-
+            output = self.decimateAB()
+            decimating_output.append(output)
             self.set_everything_to_free()
             self.set_everything_to_zeros()
             count_point = self.count_point()
