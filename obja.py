@@ -226,21 +226,9 @@ class Model:
         """
         self.vertices = []
         self.faces = []
-        # self.fov = [] # liste d'array contenant les indices de faces pour chaque vertices
-        # self.state_flags = [] # le sate_flags de chaque vertices
-        # self.retirangulation_tags = [] # les tags de chaque vertices pour la retriangulation
         self.line = 0
 
-    """def complete_model(self):
-        self.fov = [np.array([],dtype=int) for _ in range(len(self.vertices))]
-        for i in range (len(self.faces)) :
-            f = self.faces[i]
-            self.fov[f.a] = np.append(self.fov[f.a],i)
-            self.fov[f.b] = np.append(self.fov[f.b],i)
-            self.fov[f.c] = np.append(self.fov[f.c],i)
-        self.state_flags = np.zeros(len(self.vertices),dtype=int)
-        self.retirangulation_tags = np.zeros(len(self.vertices),dtype=int)
-    """
+
     def memorize_face(self,face):
         self.faces.append(face)
         index_face = len(self.faces) - 1
@@ -368,8 +356,7 @@ class Model:
 
         else:
             return
-            # raise UnknownInstruction(split[0], self.line)
-    
+
     """
     Utility functions:
     """
@@ -439,16 +426,6 @@ class Model:
                 face = self.faces[index_face]
                 if not(face.visible):
                     continue
-                # if len(self.vertices[face.a].faces) < 3:
-                #     print("")
-                #     #raise Exception('Vertex a of index {} from face of index {} has only {} valencies'.format(face.a, index_face, len(self.vertices[face.a].faces)))
-                # elif len(self.vertices[face.b].faces) < 3:
-                #     print("")
-                #     #raise Exception('Vertex b of index {} from face of index {} has only {} valencies'.format(face.b, index_face, len(self.vertices[face.b].faces)))
-                # elif len(self.vertices[face.c].faces) < 3:
-                #     print("")
-                #     #raise Exception('Vertex c of index {} from face of index {} has only {} valencies'.format(face.c, index_face, len(self.vertices[face.c].faces)))
-                # else:
                 if not(face.a in index_vertex_created):
                     if self.vertices[face.a].color:
                         output_model.add_colored_vertex(face.a, self.vertices[face.a].coordinates, self.vertices[face.a].color)
@@ -603,56 +580,6 @@ class Model:
 
          
 
-    """
-    Function specific our case:
-    """
-    def find_the_gate(self, vertice_center,current_gate, init_gate = None ,count = 0):
-        """
-        Recursive function to find gates when the front vertex is to be removed.
-
-        Parameters:
-        - vertice_center: The front vertex of the current gate.
-        - current_gate: The current gate being explored.
-        - init_gate: The initial gate used as a reference to stop the recursion.
-
-        """
-        #print("Start find gate, counting: {}".format(count))
-        count += 1
-        #print("Find the gate {}".format(count))
-        # Set the initial gate
-        if init_gate is None:
-            init_gate = [current_gate[1],current_gate[0]] 
-            # inverse in the self.gate all gate orientation as well as the init 
-            # => except of the first gate (init), all gate need to point in the future outside of the batch
-            current_gate = init_gate
-        
-        # find the next_gate
-        #print(f"Count {count}: current gate {current_gate[1].index} (1) {current_gate[0].index} (0), vertice_center {vertice_center.index}")
-        #self.print_single_vertex(current_gate[0].index)
-        #self.print_single_vertex(current_gate[1].index)
-        gate_face = self.gate_to_face(vertice_center, current_gate[0])
-        #print("new_face: {}".format(gate_face[0]))
-        #self.print_single_face(gate_face[0])
-        new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
-        #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
-
-        # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
-        if not(new_gate[0].state == State.Conquered  and new_gate[1].state == State.Conquered)  and init_gate != new_gate : 
-            #print("Not conquered gate")
-            new_gate[0].state = State.Conquered  
-            new_gate[1].state = State.Conquered 
-            self.gate.append(new_gate)
-            #self.print_gate_index()
-
-        # Check if the new gate is different from the initial gate to avoid infinite recursion
-        if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<10 :
-            #print("Different new than init => continue")
-            self.find_the_gate(vertice_center,new_gate, init_gate,count)
-        if count>=10:
-            self.save_f_by_f('Results_tests/problem_find_gate.obj')
-            raise FindGateLooping()
-        
-
     def find_the_gate_index(self, vertice_center,current_gate, init_gate = None ,count = 0):
         """
         Recursive function to find gates when the front vertex is to be removed.
@@ -663,9 +590,7 @@ class Model:
         - init_gate: The initial gate used as a reference to stop the recursion.
 
         """
-        #print("Start find gate, counting: {}".format(count))
         count += 1
-        #print("Find the gate {}".format(count))
         # Set the initial gate
         if init_gate is None:
             init_gate = [current_gate[1],current_gate[0]] 
@@ -674,26 +599,18 @@ class Model:
             current_gate = init_gate
         
         # find the next_gate
-        #self.print_single_vertex(current_gate[0].index)
-        #self.print_single_vertex(current_gate[1].index)
         gate_face = self.gate_to_face(vertice_center, current_gate[0])
-        #print("new_face: {}".format(gate_face[0]))
-        #self.print_single_face(gate_face[0])
         new_gate = [gate_face[3],gate_face[2]] # Inversing the gate orientation
-        #print("new_gate: ({},{})".format(new_gate[0].index,new_gate[1].index))
 
         # Check if the vertices of the new gate have state 2 and if it is different from the initial gate
         if not(new_gate[0].state == State.Conquered  and new_gate[1].state == State.Conquered)  and init_gate != new_gate : 
-            #print("Not conquered gate")
             new_gate[0].state = State.Conquered  
             new_gate[1].state = State.Conquered 
             n_gate = [new_gate[0].index,new_gate[1].index]
             self.gate.append(n_gate)
-            #self.print_gate_index()
 
         # Check if the new gate is different from the initial gate to avoid infinite recursion
         if not(init_gate[0].equality(new_gate[0]) and init_gate[1].equality(new_gate[1])) and count<20 :
-            #print("Different new than init => continue")
             self.find_the_gate_index(vertice_center,new_gate, init_gate,count)
         if count>=20:
             self.save_f_by_f('Results_tests/problem_find_gate.obj')
@@ -718,18 +635,6 @@ class Model:
         if counting == 1:
             return return_component
         else:
-            self.print_single_vertex(gate_vertex1.index)
-            self.print_single_vertex(gate_vertex2.index)
-            print(counting)
-
-            # self.print_single_face(528)
-            self.print_count_valencies()
-            self.coloring_vertex_all_similar([0.5,0.5,0.5])
-            self.vertices[gate_vertex1.index].coloring_vertex([1,0,0])
-            self.vertices[gate_vertex2.index].coloring_vertex([0,1,0])
-            # self.vertices[250].coloring_vertex([1,0,0])
-            self.save_f_by_f('Results_tests/echec_find_gate.obj')
-            #self.print_faces()
             raise NotGate2Face(gate_vertex1.index,gate_vertex2.index)
     
     def create_face(self,indices):

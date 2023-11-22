@@ -744,7 +744,7 @@ class Decimater(obja.Model):
         print("Number of verticies: {}".format(count_point))
         decimating_output = []
 
-        while count_point>=nb_point_end and self.nb_decimate<nb_max_iteration :
+        while count_point>nb_point_end and self.nb_decimate<nb_max_iteration :
             self.nb_decimate += 1
             print(f"{self.nb_decimate}ieme decimation")
             output = self.decimateAB()
@@ -803,7 +803,7 @@ def main():
     #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
     #model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
     #model.parse_file('example/Icosphere_2562_vertices.obj')
-    model.parse_file('example/hippo.obj')
+    model.parse_file('example/bunny_bis.obj')
     ismanifold = model.allmanifold()
     print(ismanifold)
     if not(ismanifold):
