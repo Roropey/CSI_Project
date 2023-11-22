@@ -1,6 +1,6 @@
 # Progressive Compression for Lossless Transmission of Triangle Meshes Implementation
 
-As a project for the courses Modélisation, Compression, Streaming, Interactions 3D of the formation Image et MultiMédia of Sciences du Numérique Department of ENSEEIHT school. This git deposit is based on the git deposit: https://gitea.tforgione.fr/tforgione/obja. This implementation has for goal to take a manifold 3D obj model to generate the decimation based on the paper "Progressive Compression for Lossless Transmission of Triangle Meshes". The decimation is implemented in valence_driven_decimater.py program and the reconstruction based on the decimation output and decimation model is done by reconstruction.py.
+As a project for the courses Modélisation, Compression, Streaming, Interactions 3D of the formation Image et MultiMédia of Sciences du Numérique Department of ENSEEIHT school, we have to implement a 3D object compression method for streaming. The file "ProjetCSI2023.pdf" corresponds to the project description.  This git deposit is based on the git deposit: https://gitea.tforgione.fr/tforgione/obja. This implementation has for goal to take a manifold 3D obj model to generate the decimation based on the paper "Progressive Compression for Lossless Transmission of Triangle Meshes" (4.AlliezDesbrun01.pdf file). The decimation is implemented in valence_driven_decimater.py program and the reconstruction based on the decimation output and decimation model is done by reconstruction.py.
 The reconstruction.py program produced an obja file that shows the reconstruction progression iterations.
 
 ## decimate_and_recreate.py
@@ -67,3 +67,26 @@ This program contains the decimation part of the implementation. From a input mo
 
 This program contains the reconstruction part of the implementationFrom a low resolution model and series of outputs, it produces an obja file that shows the reconstruction iterations.
 
+## server.py and index.html
+
+This files are from "https://gitea.tforgione.fr/tforgione/obja" and are used in the server.py program for display obja files in a browser. See "https://gitea.tforgione.fr/tforgione/obja" for how to execute.
+
+## Original git files
+
+This folder contains the original README and decimate.py program given by the https://gitea.tforgione.fr/tforgione/obja deposit.
+
+## Results_obja
+
+This folder contains produced obja from the recreating program.
+
+## Test_Objects_low
+
+In this folder are obj model made to develop and test the implementation.
+
+## example
+
+This folder contains the obj model used to test and measure the implementation. Some version of the obj are modified to be watertight (no hole) and so may change the manifold level.
+
+## js and src
+
+This two folders are used by server.py and are from the "https://gitea.tforgione.fr/tforgione/obja" deposit.
