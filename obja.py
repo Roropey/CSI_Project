@@ -83,7 +83,7 @@ class Face:
     def __repr__(self):
         return str(self)
     def equality_content(self,other):
-        return self.a == other.a and self.b == other.b and self.c == other.c
+        return (self.a == other.a and self.b == other.b and self.c == other.c) or (self.a == other.b and self.b == other.c and self.c == other.a) or (self.a == other.c and self.b == other.a and self.c == other.b)
 
 class VertexError(Exception):
     """
@@ -212,7 +212,7 @@ class Vertex:
     def equality(self,other):
         return self.index == other.index
     def equality_content(self,other):
-        return np.array_equal(self.coordinates, other.coordinates) and self.state == other.state and self.retriangulation_type == other.retriangulation_type and len(self.faces) == len(other.faces)
+        return np.array_equal(self.coordinates, other.coordinates) and len(self.faces) == len(other.faces) #and self.state == other.state and self.retriangulation_type == other.retriangulation_type
         
 
 class Model:
@@ -380,23 +380,23 @@ class Model:
         return self
     
     def equal(self,other):
-        if self.line != other.line:
-            return False
+        # if self.line != other.line:
+        #    return False
         for vertex_self in self.vertices:
             match_pass = False
             if len(vertex_self.faces) > 0:
                 for vertex_other in other.vertices:
                     match_pass = match_pass or vertex_self.equality_content(vertex_other)
-            if not(match_pass):
-                return False
+                if not(match_pass):
+                    return False
         for face_self in self.faces:
             match_pass = False
             if face_self.visible:
                 for face_other in other.faces:
                     if face_other.visible:
                         match_pass = match_pass or face_self.equality_content(face_other)
-            if not(match_pass):
-                return False
+                if not(match_pass):
+                    return False
         return True
         
 

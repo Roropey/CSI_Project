@@ -541,8 +541,11 @@ class Decimater(obja.Model):
                         self.retriangulation(vertex_remove)
                         #self.save_f_by_f('Results_tests/after_decimating_conquest_{}_{}.obj'.format(self.nb_decimate, self.count))
                     if self.presence_of_valence_of(2):
-                        #self.save_f_by_f('Fail/Fail_decimating_{}_try_{}_gate_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f,limit_value(ind_4_inds_g-1,0,2)))
-
+                        # self.vertices[vertex_remove.index].coloring_vertex([1,0,0])
+                        # self.save_f_by_f('Fail/Fail_decimating_{}_try_{}_gate_{}.obj'.format(self.nb_decimate,self.ind_4_inds_f,limit_value(ind_4_inds_g-1,0,2)))
+                        # save_model.save_selected_f('Fail/Fail_decimating_{}_try_{}_gate_{}_faces.obj'.format(self.nb_decimate,self.ind_4_inds_f,limit_value(ind_4_inds_g-1,0,2)),save_model.vertices[vertex_remove.index].faces)
+                        #
+                        # raise Exception("Fail")
                         break
                 cond_do_decimating = self.presence_of_valence_of(2)
             #if len(output_val_A)<100:
@@ -633,7 +636,7 @@ class Decimater(obja.Model):
         print("Number of verticies: {}".format(count_point))
         decimating_output = []
 
-        while self.nb_decimate<nb_max_iteration :
+        while self.nb_decimate<nb_max_iteration and count_point >= nb_point_end:
             self.nb_decimate += 1
             print(f"{self.nb_decimate}ieme decimation")
             output = self.decimateAB()
@@ -664,12 +667,12 @@ def main():
     model = Decimater()
     #model.parse_file("Test_Objects_low\Icosphere_5&6_valencies.obj")
     #model.parse_file('Test_Objects_low/Sphere_4&5&6&7_valencies.obj')
-    #model.parse_file('example/suzanne_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
-    #model.parse_file('example/Icosphere_2562_vertices.obj')
-    model.parse_file('example/fandisk.obj')
+    #model.parse_file('example/bunny_bis_bis.obj') # Doesn't work because suzanne has valence of 2 since origin
+    model.parse_file('example/Icosphere_2562_vertices.obj')
+    #model.parse_file('example/fandisk.obj')
     #model.decimateAB()d
     model.print_count_valencies()
-    decimating_output = model.decimate(2000,20)
+    decimating_output = model.decimate(20,20)
 
     print("init_gate_decimating_2")
     model.print_single_vertex(decimating_output[0].init_gate_decimating[0].index)

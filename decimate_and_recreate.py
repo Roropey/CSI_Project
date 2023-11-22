@@ -7,7 +7,7 @@ def make_parser():
     parser = argparse.ArgumentParser("Decimater and Recreater application")
 
     parser.add_argument("-it","--iterations",type=int,default=1000,help='Number of iteration maximum of decimating and cleaning to be done')
-    parser.add_argument("-minPts","--minimum_points",type=int,default=None,help='Number minimum of vertices at the end of the decimation')
+    parser.add_argument("-minPts","--minimum_points",type=int,default=4,help='Number minimum of vertices at the end of the decimation')
     parser.add_argument("-minProp","--minimum_proportion",type=float,default=None,help='Proportion of minimum vertices at the end of the decimation (minimum number = max(minimum number given, proportion * original numnber of vertices))')
     parser.add_argument("-input","--input_model",type=str,help='Path to the obj input model')
     parser.add_argument("-outputDecimate","--output_decimating",type=str,default=None,help='Path or name of the obj(a) model of the low decimation result model, None will not create the model')
