@@ -1,5 +1,5 @@
-import valence_driven_decimater_v2 as decimater
-import reconstruction_v2 as reconstructor
+import valence_driven_decimater as decimater
+import reconstruction as reconstructor
 import obja
 with open('results_ouputs.txt', 'w') as output:
 
