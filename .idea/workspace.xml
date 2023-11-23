@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="45d6fab5-3106-4762-b6b2-b897a90f807b" name="Changes" comment="Correction retriangulation reconstruction: adding case to gate 1 1 type to be similar to -1 1 and other not shown on figure 12 of paper, correction of not removing central face of valence 6 (forget)">
+      <change afterPath="$PROJECT_DIR$/.idea/CSI.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output_reconstruction.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/bunny_bis_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/bunny_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/cow_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/fandisk_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/icosphere_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/icosphere_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/Icosphere_test_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/bunny_bis_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/bunny_bis_bis_test_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/bunny_bis_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/bunny_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/cow_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/cow_test_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/fandisk_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/fandisk_test_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/hippo_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/hippo_test_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/icosphere_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/icosphere_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/sphere_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/suzanne_bigger_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/suzanne_bis_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/suzanne_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/old_results/suzanne_bis_test_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/sphere_bis_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/sphere_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/sphere_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/suzanne_bigger_bis_pure.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Results_obja/suzanne_bigger_bis_reset_color.obja" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/bunny_bis_bis.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/cow_bis.mtl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/cow_bis.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/icosphere.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/sphere.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/sphere_bis.mtl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/sphere_bis.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/suzanne_bis_bis.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reconstruction_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/results_ouput_tests.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/results_ouputs.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/script_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/script_v2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/test.obj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/valence_driven_decimater_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Results_obja/Icosphere_2562_vertices.obja" beforeDir="false" afterPath="$PROJECT_DIR$/Results_obja/old_results/Icosphere_2562_vertices.obja" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Results_obja/Icosphere_2562_vertices_reset_colors.obja" beforeDir="false" afterPath="$PROJECT_DIR$/Results_obja/old_results/Icosphere_2562_vertices_reset_colors.obja" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Results_obja/cow_reset_color.obja" beforeDir="false" afterPath="$PROJECT_DIR$/Results_obja/cow_reset_color.obja" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/decimate_and_recreate.py" beforeDir="false" afterPath="$PROJECT_DIR$/decimate_and_recreate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/bunny.obja" beforeDir="false" afterPath="$PROJECT_DIR$/example/bunny_original.obja" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/suzanne_bis.obj" beforeDir="false" afterPath="$PROJECT_DIR$/example/suzanne_bis.obj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obja.py" beforeDir="false" afterPath="$PROJECT_DIR$/obja.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results_ouput.txt" beforeDir="false" afterPath="$PROJECT_DIR$/results_ouput.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/script.py" beforeDir="false" afterPath="$PROJECT_DIR$/script.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/valence_driven_decimater.py" beforeDir="false" afterPath="$PROJECT_DIR$/valence_driven_decimater.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/valence_driven_decimater_v2.py" beforeDir="false" afterPath="$PROJECT_DIR$/valence_driven_decimater_v2.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;history&quot;: [
+    {
+      &quot;state&quot;: &quot;OPEN&quot;
+    }
+  ],
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="b1b6ca1b-506f-4609-97db-496be85ad48f" />
+        <option name="url" value="git@github.com:Roropey/CSI_Project.git" />
+      </UrlAndAccount>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2X7p221OT4hQyrkQPSOxPLbDepH" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/romai/Documents/INP/ENSEEIHT/3A/S9/CSI&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CodeWithMe&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\romai\Documents\INP\ENSEEIHT\3A\S9\CSI" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.script_v2">
+    <configuration name="script" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CSI" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="script_v2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CSI" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script_v2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CSI" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/server.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="valence_driven_decimater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CSI" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/valence_driven_decimater.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="valence_driven_decimater_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CSI" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/valence_driven_decimater_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.script_v2" />
+        <item itemvalue="Python.script" />
+        <item itemvalue="Python.server" />
+        <item itemvalue="Python.valence_driven_decimater" />
+        <item itemvalue="Python.valence_driven_decimater_test" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="45d6fab5-3106-4762-b6b2-b897a90f807b" name="Changes" comment="" />
+      <created>1697989762982</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1697989762982</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Adding color possibilities, trying figuring out source problem">
+      <option name="closed" value="true" />
+      <created>1698184332126</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1698184332126</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Adding color possibilities, trying figuring out source problem">
+      <option name="closed" value="true" />
+      <created>1698184409805</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1698184409805</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Adding color possibilities, trying figuring out source problem">
+      <option name="closed" value="true" />
+      <created>1698184790324</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1698184790324</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Test by coloring gate and vertex to be removed progressvly, comparing the retriangulation type color each step to see if change (not the case)">
+      <option name="closed" value="true" />
+      <created>1698223324574</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1698223324574</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Add functio to be used to verify and create faces in retriangulation">
+      <option name="closed" value="true" />
+      <created>1698312942973</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1698312942973</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Evolution of reconstruction (retriangulation), not finished">
+      <option name="closed" value="true" />
+      <created>1698602282657</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1698602282657</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Retriangulation done + modification of chosing first gate (no more random, test one by one the faces)">
+      <option name="closed" value="true" />
+      <created>1698660425724</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1698660425724</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Choose randomly face but not everytime the same">
+      <option name="closed" value="true" />
+      <created>1699351649553</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1699351649553</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Implementation save a single face, correction of coloring vertex and generation of faces of clearing conquest">
+      <option name="closed" value="true" />
+      <created>1699711046274</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1699711046275</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Correction modification vertex on self but not on gate, also correction on retriangulation type initialisation">
+      <option name="closed" value="true" />
+      <created>1699752340574</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1699752340574</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Correction retriangulation reconstruction: adding case to gate 1 1 type to be similar to -1 1 and other not shown on figure 12 of paper, correction of not removing central face of valence 6 (forget)">
+      <option name="closed" value="true" />
+      <created>1699825516034</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1699825516034</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Adding color possibilities, trying figuring out source problem" />
+    <MESSAGE value="Test by coloring gate and vertex to be removed progressvly, comparing the retriangulation type color each step to see if change (not the case)" />
+    <MESSAGE value="Add functio to be used to verify and create faces in retriangulation" />
+    <MESSAGE value="Evolution of reconstruction (retriangulation), not finished" />
+    <MESSAGE value="Retriangulation done + modification of chosing first gate (no more random, test one by one the faces)" />
+    <MESSAGE value="Choose randomly face but not everytime the same" />
+    <MESSAGE value="Implementation save a single face, correction of coloring vertex and generation of faces of clearing conquest" />
+    <MESSAGE value="Correction modification vertex on self but not on gate, also correction on retriangulation type initialisation" />
+    <MESSAGE value="Correction retriangulation reconstruction: adding case to gate 1 1 type to be similar to -1 1 and other not shown on figure 12 of paper, correction of not removing central face of valence 6 (forget)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Correction retriangulation reconstruction: adding case to gate 1 1 type to be similar to -1 1 and other not shown on figure 12 of paper, correction of not removing central face of valence 6 (forget)" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/script.py</url>
+          <line>18</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="self.vertices[4]" />
+        <watch expression="self.vertices[4]" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>
