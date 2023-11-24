@@ -99,3 +99,7 @@ Due to lacking time, some ideas of progression were not implemented.
 ### Reuse of existing faces
 
 In the implementation, when the retriangulation occured, we remove faces by making them invisible and create new one (in both decimation and reconstruction). This implementation causes to increase the size of the model by having more and more faces unused and created a second time in the reconstruction. The idea of reusing faces during retriangulation is to just modified previously decimated by changing one or 2 vertex of the face. This idea of implementation can decrease the number of line in the obja file by changing two line of removing and creating a face to a line with the command "efv".
+
+### Finding solutions for not watertight model, valence of 1 and 2
+
+One the model given is "pokemon.obj". This model block with our implementation because of vertices with valence of 1 and 2 in the original file. This case of valence of 1 and 2 are not managed by our implemenation. This forced us to modified some model to be used. Better research and time can be used to find implementable solution.
