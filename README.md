@@ -91,3 +91,11 @@ The precedent version and test of the programs valence_driven_decimater.py and r
 ## Elements_of_presentation 
 
 This folder contains elements (like videos) related to the presentation done the 24/11/2023.
+
+## Elements of progress
+
+Due to lacking time, some ideas of progression were not implemented.
+
+### Reuse of existing faces
+
+In the implementation, when the retriangulation occured, we remove faces by making them invisible and create new one (in both decimation and reconstruction). This implementation causes to increase the size of the model by having more and more faces unused and created a second time in the reconstruction. The idea of reusing faces during retriangulation is to just modified previously decimated by changing one or 2 vertex of the face. This idea of implementation can decrease the number of line in the obja file by changing two line of removing and creating a face to a line with the command "efv".
