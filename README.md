@@ -67,6 +67,10 @@ This program contains the decimation part of the implementation. From a input mo
 
 This program contains the reconstruction part of the implementationFrom a low resolution model and series of outputs, it produces an obja file that shows the reconstruction iterations.
 
+## script.py
+
+script.py program correspond to an execution of the decimation and reconstruction of multiple obj model in example folder. The goal is to produce the obja file of the reconstruction with the color at each step of reconstruction and a colorless version to have a less big file to be upload on a measurement file.
+
 ## Original git, js and src folder, server.py and index.html
 
 The folder "Original git" contains the original README and decimate.py program given by the https://gitea.tforgione.fr/tforgione/obja deposit. "jc" and "src" folder are used by server.py and are from the git deposit.
