@@ -67,13 +67,10 @@ This program contains the decimation part of the implementation. From a input mo
 
 This program contains the reconstruction part of the implementationFrom a low resolution model and series of outputs, it produces an obja file that shows the reconstruction iterations.
 
-## server.py and index.html
+## Original git, js and src folder, server.py and index.html
 
-This files are from "https://gitea.tforgione.fr/tforgione/obja" and are used in the server.py program for display obja files in a browser. See "https://gitea.tforgione.fr/tforgione/obja" for how to execute.
-
-## Original git files
-
-This folder contains the original README and decimate.py program given by the https://gitea.tforgione.fr/tforgione/obja deposit.
+The folder "Original git" contains the original README and decimate.py program given by the https://gitea.tforgione.fr/tforgione/obja deposit. "jc" and "src" folder are used by server.py and are from the git deposit.
+The files are from the git deposit and are used in the server.py program for display obja files in a browser. See "https://gitea.tforgione.fr/tforgione/obja" for how to execute.
 
 ## Results_obja
 
@@ -86,7 +83,3 @@ In this folder are obj model made to develop and test the implementation.
 ## example
 
 This folder contains the obj model used to test and measure the implementation. Some version of the obj are modified (_bis version) to be watertight (no hole) and so may change the manifold level.
-
-## js and src
-
-This two folders are used by server.py and are from the "https://gitea.tforgione.fr/tforgione/obja" deposit.
