@@ -87,6 +87,8 @@ This 2 folder containsobj model used to develop, test and measure the implementa
 ## Precedent_version_test_program
 
 The precedent version and test of the programs valence_driven_decimater.py and reconstruction.py are stocked in this folder.
+The v0 programs doesn't handle creation of valence 2 well compared to actual implementation: the v0 is more computation hungry because it tries the decimation on every gate possible until finding a decimation that do not produce a valence of 2. In addition of being too long to be used, it doesn't work on certain model like bunny_bis.obj where at the first decimation, all gates possible (all faces times 3) are tried but without success, and so no decimation done.
+The test programs is a quick try to handle valence of 2 decimation, but without success. This is because having gates that share two faces cause problems (errors) in many part of the implementation and correcting it would required a full reimplementation of everything, something that cann't be done in the remaining time (before the project end).
 
 ## Elements_of_presentation 
 
@@ -98,8 +100,16 @@ Due to lacking time, some ideas of progression were not implemented.
 
 ### Reuse of existing faces
 
-In the implementation, when the retriangulation occured, we remove faces by making them invisible and create new one (in both decimation and reconstruction). This implementation causes to increase the size of the model by having more and more faces unused and created a second time in the reconstruction. The idea of reusing faces during retriangulation is to just modified previously decimated by changing one or 2 vertex of the face. This idea of implementation can decrease the number of line in the obja file by changing two line of removing and creating a face to a line with the command "efv".
+In the implementation, when the retriangulation occured, we remove faces by making them invisible and create new one (in both decimation and reconstruction). This implementation causes to increase the size of the model by having more and more faces unused and created a second time in the reconstruction. The idea of reusing faces during retriangulation is to just modified previously decimated by changing one or 2 vertex of the face. This idea of implementation can decrease the number of line in the obja file by changing two line of removing and creating a face to a line with the command "efv". We can observed the suppression in the obja retriangulation because we can see holes some time, but we can hope to less view hope by using the "efv" command instead of removing all faces and after creating new one.
 
 ### Finding solutions for not watertight model, valence of 1 and 2
 
 One the model given is "pokemon.obj". This model block with our implementation because of vertices with valence of 1 and 2 in the original file. This case of valence of 1 and 2 are not managed by our implemenation. This forced us to modified some model to be used. Better research and time can be used to find implementable solution.
+
+### Stopping decimation by face
+
+At the moment, the decimation stopped by a limit of iteration and a minimum number of vertices (or proportion compared to the original), but we can think of counting also the faces to be limit of decimation.
+
+### Stopping decimation based on metrics
+
+As before, we can change the condition of stopping the decimation with another one. By implementing a metrics, we could choose to decomposed the model until reaching a certain amount of loss in detail. This could help producing at the output of the decimation different level of detail (LoD) model to be used in an application like a game of an 3D animation.
