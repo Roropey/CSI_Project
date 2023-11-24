@@ -76,10 +76,14 @@ The files are from the git deposit and are used in the server.py program for dis
 
 This folder contains produced obja from the recreating program.
 
-## Test_Objects_low
+## Test_Objects_low and example
 
-In this folder are obj model made to develop and test the implementation.
+This 2 folder containsobj model used to develop, test and measure the implementation. Some version of the obj are modified (_bis version) to be watertight (no hole) and so may change the manifold level.
 
-## example
+## Precedent_version_test_program
 
-This folder contains the obj model used to test and measure the implementation. Some version of the obj are modified (_bis version) to be watertight (no hole) and so may change the manifold level.
+The precedent version and test of the programs valence_driven_decimater.py and reconstruction.py are stocked in this folder.
+
+## Elements_of_presentation 
+
+This folder contains elements (like videos) related to the presentation done the 24/11/2023.
