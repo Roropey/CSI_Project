@@ -104,7 +104,7 @@ In the implementation, when the retriangulation occured, we remove faces by maki
 
 ### Finding solutions for not watertight model, valence of 1 and 2
 
-One the model given is "pokemon.obj". This model block with our implementation because of vertices with valence of 1 and 2 in the original file. This case of valence of 1 and 2 are not managed by our implemenation. This forced us to modified some model to be used. Better research and time can be used to find implementable solution.
+One the model given is "pokemon.obj". This model block with our implementation because of vertices with valence of 1 and 2 in the original file, and was too big to be corrected by hand in a "_bis" version. This case of valence of 1 and 2 are not managed by our implemenation. This forced us to modified some model to be used. Better research and time can be used to find implementable solution.
 
 ### Stopping decimation by face
 
