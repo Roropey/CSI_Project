@@ -85,7 +85,7 @@ In this folder are obj model made to develop and test the implementation.
 
 ## example
 
-This folder contains the obj model used to test and measure the implementation. Some version of the obj are modified to be watertight (no hole) and so may change the manifold level.
+This folder contains the obj model used to test and measure the implementation. Some version of the obj are modified (_bis version) to be watertight (no hole) and so may change the manifold level.
 
 ## js and src
 
