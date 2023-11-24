@@ -35,9 +35,12 @@ function init() {
     light1 = new THREE.AmbientLight(0x999999);
     scene.add(light1);
 
-    light2 = new THREE.DirectionalLight(0xffffff, 1.0);
+    light2 = new THREE.DirectionalLight(0xffffff, 0.5);
     light2.position.set(0.0, 1.0, 0.0);
     scene.add(light2);
+
+    
+
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);

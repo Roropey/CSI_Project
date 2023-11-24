@@ -174,14 +174,22 @@ class FindGateLooping(Exception):
         return f"Find gate looping"
 
 class NotGate2Face(Exception):
-    def __init__(self, gate1, gate2):
+    def __init__(self, gate1, gate2, model):
         self.gate1 = gate1
         self.gate2 = gate2
+        self.model = model
         super().__init__()
     def __str__(self):
         """
         Pretty prints the error.
         """
+        self.model.print_single_vertex(self.gate1)
+        self.model.print_single_vertex(self.gate2)
+        print("Common faces:")
+        for index_face in self.model.vertices[self.gate1].faces:
+            if index_face in self.model.vertices[self.gate2].faces:
+                self.model.print_single_face(index_face)
+        self.model.save_f_by_f("Exception_NotGate2Face.obj")
         return "The two vertex given (index {} and {}) doesn't correspond to a gate.".format(self.gate1,
                                                                                    self.gate2)
 class Vertex:
@@ -635,7 +643,7 @@ class Model:
         if counting == 1:
             return return_component
         else:
-            raise NotGate2Face(gate_vertex1.index,gate_vertex2.index)
+            raise NotGate2Face(gate_vertex1.index,gate_vertex2.index,self)
     
     def create_face(self,indices):
         face = Face.from_array_num(indices)
